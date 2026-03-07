@@ -4,45 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quântica - Gestão de Escalas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --primary: #1a237e; --secondary: #0d47a1; --accent: #2979ff;
-            --success: #2e7d32; --danger: #c62828; --warning: #f9a825;
-            --bg: #f5f5f5; --white: #ffffff;
+            --success: #2e7d32; --danger: #c62828; --bg: #f5f5f5; --white: #ffffff;
         }
-
-        body { font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; background: var(--bg); color: #333; padding-bottom: 70px; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); padding-bottom: 80px; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 100; }
+        .container { padding: 15px; max-width: 800px; margin: auto; }
         
-        header { background: var(--primary); color: white; padding: 15px; text-align: center; font-size: 1.2rem; font-weight: bold; position: sticky; top: 0; z-index: 100; }
-
-        .container { padding: 15px; max-width: 600px; margin: auto; }
-
-        /* Navegação Inferior */
-        nav { position: fixed; bottom: 0; width: 100%; background: var(--white); display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid #ddd; z-index: 100; }
-        nav button { background: none; border: none; font-size: 0.9rem; color: #666; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 2px solid #ddd; z-index: 100; }
+        nav button { background: none; border: none; font-size: 0.8rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; color: #666; }
         nav button.active { color: var(--primary); font-weight: bold; }
 
         .page { display: none; }
         .page.active { display: block; }
 
-        /* Cards e Listas */
-        .card { background: var(--white); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .card { background: var(--white); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { font-size: 1rem; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 10px; }
+        
         .item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .item:last-child { border: none; }
+        .info b { display: block; font-size: 1rem; }
+        .info span { font-size: 0.8rem; color: #666; }
 
-        /* Status Colors */
-        .status-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 3px rgba(0,0,0,0.2); }
-        .st-posto { background: var(--success); }   /* Verde */
-        .st-base { background: var(--accent); }     /* Azul */
-        .st-folga { background: var(--danger); }    /* Vermelho */
+        .status-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 3px rgba(0,0,0,0.3); }
+        .st-posto { background: var(--success); }
+        .st-base { background: var(--accent); }
+        .st-folga { background: var(--danger); }
 
-        /* Formulários */
-        input, select, button.primary { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
-        button.primary { background: var(--primary); color: white; border: none; font-weight: bold; font-size: 1rem; }
-        .btn-del { background: none; border: none; color: var(--danger); font-size: 1.2rem; cursor: pointer; }
+        input, select, button.btn-p { width: 100%; padding: 12px; margin: 5px 0 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+        button.btn-p { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-sec { background: #eee; border: none; padding: 8px; border-radius: 5px; font-size: 0.8rem; cursor: pointer; }
 
-        .badge { font-size: 0.7rem; padding: 3px 6px; border-radius: 12px; background: #e3f2fd; color: #0d47a1; margin-left: 5px; font-weight: bold; }
-        .date-ref { text-align: center; font-weight: bold; margin-bottom: 10px; color: var(--secondary); }
+        .badge { font-size: 0.7rem; padding: 2px 6px; background: #e8eaf6; border-radius: 10px; color: var(--primary); font-weight: bold; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -52,153 +47,225 @@
 <div class="container">
     
     <div id="painel" class="page active">
-        <div class="date-ref" id="txtHoje"></div>
-        <input type="text" id="busca" placeholder="🔍 Buscar funcionário ou posto..." onkeyup="filtrar()">
-        <div id="listaEfetivo"></div>
+        <div style="text-align:center; font-weight:bold; margin-bottom:15px;" id="dataHoje"></div>
+        
+        <h2>🛡️ Supervisão (Fiscais / Inspetores)</h2>
+        <div id="listaSuperv"></div>
+
+        <h2 style="margin-top:20px;">📋 Equipe Operacional (Líderes / ASPs / Reservas)</h2>
+        <div id="listaOperacional"></div>
+
+        <div class="card" style="margin-top:20px;">
+            <h3>Gerar Relatórios PDF</h3>
+            <button class="btn-p" onclick="gerarRelatorioDia()">📄 Relatório Diário (Quem está de serviço)</button>
+            <button class="btn-p" style="background:#455a64;" onclick="gerarRelatorioMensal()">📅 Escala Mensal Completa</button>
+        </div>
     </div>
 
     <div id="gestao" class="page">
         <div class="card">
-            <h3>Cadastrar Funcionário</h3>
-            <input type="text" id="cadNome" placeholder="Nome Completo">
-            <label>Escala:</label>
-            <select id="cadEscala">
-                <option value="12x36">12x36 (Dia Sim/Não)</option>
-                <option value="6x1">6x1 (Tradicional)</option>
-                <option value="5x1">5x1 (Tradicional)</option>
-                <option value="4x2">4x2 (Tradicional)</option>
-                <option value="2x1">2x1 (Tradicional)</option>
-                <option value="2x1-folguista">2x1 Folguista (Posto/Base/Folga)</option>
-                <option value="4x2-folguista">4x2 Folguista (Posto/Base/Folga)</option>
+            <h2>Cadastrar / Editar</h2>
+            <input type="hidden" id="editId">
+            <input type="text" id="nome" placeholder="Nome do Funcionário">
+            <input type="text" id="posto" placeholder="Nome do Posto">
+            
+            <label>Cargo:</label>
+            <select id="cargo">
+                <option value="Fiscal">Fiscal</option>
+                <option value="Inspetor">Inspetor</option>
+                <option value="Lider">Líder</option>
+                <option value="ASP">ASP</option>
             </select>
-            <label>Data de Início (1º dia de serviço):</label>
-            <input type="date" id="cadData">
-            <button class="primary" onclick="salvarFuncionario()">Adicionar à Lista</button>
+
+            <label>Escala:</label>
+            <select id="escala">
+                <option value="12x36">12x36</option>
+                <option value="6x1">6x1</option>
+                <option value="5x1">5x1</option>
+                <option value="4x2">4x2</option>
+                <option value="2x1-folguista">2x1 Folguista (Posto/Base/Folga)</option>
+            </select>
+            
+            <label>Data de Início:</label>
+            <input type="date" id="dataInicio">
+            
+            <button class="btn-p" id="btnSalvar" onclick="salvar()">Salvar Informações</button>
         </div>
+
+        <div class="card">
+            <button class="btn-sec" onclick="exportarDados()">Backup (Exportar)</button>
+            <button class="btn-sec" onclick="document.getElementById('fileIn').click()">Importar JSON</button>
+            <input type="file" id="fileIn" style="display:none" onchange="importarDados(this)">
+        </div>
+
         <div id="listaAdmin"></div>
     </div>
-
 </div>
 
 <nav>
-    <button onclick="mudarPagina('painel', this)" class="active"><span>📋</span>Painel</button>
-    <button onclick="mudarPagina('gestao', this)"><span>⚙️</span>Gestão</button>
+    <button onclick="mudarPagina('painel', this)" class="active">📋 Painel</button>
+    <button onclick="mudarPagina('gestao', this)">⚙️ Gestão</button>
 </nav>
 
 <script>
-    // Banco de dados local
-    let efetivo = JSON.parse(localStorage.getItem("quantica_efetivo")) || [];
+    let db = JSON.parse(localStorage.getItem("db_quantica_v2")) || [];
 
     function mudarPagina(id, btn) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         btn.classList.add('active');
-        renderizar();
+        render();
     }
 
-    function salvarFuncionario() {
-        const novo = {
-            id: Date.now(),
-            nome: document.getElementById('cadNome').value,
-            escala: document.getElementById('cadEscala').value,
-            dataInicio: document.getElementById('cadData').value
+    function salvar() {
+        const id = document.getElementById('editId').value;
+        const dados = {
+            id: id ? parseInt(id) : Date.now(),
+            nome: document.getElementById('nome').value,
+            posto: document.getElementById('posto').value,
+            cargo: document.getElementById('cargo').value,
+            escala: document.getElementById('escala').value,
+            dataInicio: document.getElementById('dataInicio').value
         };
 
-        if(!novo.nome || !novo.dataInicio) return alert("Preencha tudo!");
+        if(!dados.nome || !dados.dataInicio) return alert("Preencha Nome e Data!");
+
+        if(id) db = db.map(f => f.id === parseInt(id) ? dados : f);
+        else db.push(dados);
+
+        localStorage.setItem("db_quantica_v2", JSON.stringify(db));
+        document.getElementById('editId').value = "";
+        document.getElementById('nome').value = "";
+        document.getElementById('posto').value = "";
+        render();
+        alert("Salvo com sucesso!");
+    }
+
+    function calcularStatus(f, dataAlvo = new Date()) {
+        dataAlvo.setHours(0,0,0,0);
+        const inicio = new Date(f.dataInicio + "T00:00:00");
+        const diff = Math.floor((dataAlvo - inicio) / 86400000);
         
-        efetivo.push(novo);
-        localStorage.setItem("quantica_efetivo", JSON.stringify(efetivo));
-        alert("Funcionário cadastrado!");
-        renderizar();
-    }
+        if(diff < 0) return { cl: "st-folga", txt: "A iniciar" };
 
-    function excluirFuncionario(id) {
-        if(confirm("Remover funcionário?")) {
-            efetivo = efetivo.filter(f => f.id !== id);
-            localStorage.setItem("quantica_efetivo", JSON.stringify(efetivo));
-            renderizar();
+        if(f.escala === "12x36") return (diff % 2 === 0) ? { cl: "st-posto", txt: "Serviço" } : { cl: "st-folga", txt: "Folga" };
+        if(f.escala === "6x1") return (diff % 7 < 6) ? { cl: "st-posto", txt: "Serviço" } : { cl: "st-folga", txt: "Folga" };
+        if(f.escala === "5x1") return (diff % 6 < 5) ? { cl: "st-posto", txt: "Serviço" } : { cl: "st-folga", txt: "Folga" };
+        if(f.escala === "4x2") return (diff % 6 < 4) ? { cl: "st-posto", txt: "Serviço" } : { cl: "st-folga", txt: "Folga" };
+        if(f.escala === "2x1-folguista") {
+            let r = diff % 3;
+            if(r === 0) return { cl: "st-posto", txt: "No Posto" };
+            if(r === 1) return { cl: "st-base", txt: "Na Base" };
+            return { cl: "st-folga", txt: "Folga" };
         }
+        return { cl: "st-posto", txt: "Serviço" };
     }
 
-    function calcularStatus(func) {
-        const hoje = new Date(); hoje.setHours(0,0,0,0);
-        const inicio = new Date(func.dataInicio + "T00:00:00");
-        const diff = Math.floor((hoje - inicio) / (1000 * 60 * 60 * 24));
+    function render() {
+        const sup = document.getElementById("listaSuperv");
+        const ope = document.getElementById("listaOperacional");
+        const adm = document.getElementById("listaAdmin");
+        document.getElementById("dataHoje").innerText = "Hoje: " + new Date().toLocaleDateString('pt-BR');
 
-        if (diff < 0) return { classe: "st-folga", txt: "Não iniciado" };
+        sup.innerHTML = ""; ope.innerHTML = ""; adm.innerHTML = "<h3>Cadastrados</h3>";
 
-        switch(func.escala) {
-            case "12x36":
-                return (diff % 2 === 0) ? { classe: "st-posto", txt: "Serviço" } : { classe: "st-folga", txt: "Folga" };
-            case "6x1":
-                return (diff % 7 < 6) ? { classe: "st-posto", txt: "Serviço" } : { classe: "st-folga", txt: "Folga" };
-            case "5x1":
-                return (diff % 6 < 5) ? { classe: "st-posto", txt: "Serviço" } : { classe: "st-folga", txt: "Folga" };
-            case "4x2":
-                return (diff % 6 < 4) ? { classe: "st-posto", txt: "Serviço" } : { classe: "st-folga", txt: "Folga" };
-            case "2x1":
-                return (diff % 3 < 2) ? { classe: "st-posto", txt: "Serviço" } : { classe: "st-folga", txt: "Folga" };
-            case "2x1-folguista":
-                let r3 = diff % 3;
-                if(r3 === 0) return { classe: "st-posto", txt: "Posto" };
-                if(r3 === 1) return { classe: "st-base", txt: "Na Base" };
-                return { classe: "st-folga", txt: "Folga" };
-            case "4x2-folguista":
-                let r6 = diff % 6;
-                if(r6 < 2) return { classe: "st-posto", txt: "Posto" };
-                if(r6 < 4) return { classe: "st-base", txt: "Na Base" };
-                return { classe: "st-folga", txt: "Folga" };
-            default:
-                return { classe: "st-posto", txt: "Serviço" };
-        }
-    }
-
-    function renderizar() {
-        const listaPainel = document.getElementById("listaEfetivo");
-        const listaAdmin = document.getElementById("listaAdmin");
-        const txtHoje = document.getElementById("txtHoje");
-        
-        const hoje = new Date();
-        txtHoje.innerText = "📅 " + hoje.toLocaleDateString('pt-BR');
-
-        listaPainel.innerHTML = "";
-        listaAdmin.innerHTML = "<h3>Lista de Funcionários</h3>";
-
-        efetivo.forEach(f => {
-            const status = calcularStatus(f);
-            
-            // Render Painel Operacional
-            listaPainel.innerHTML += `
-                <div class="card item-func" data-nome="${f.nome}">
-                    <div style="flex-grow:1">
-                        <strong>${f.nome}</strong> <span class="badge">${f.escala}</span>
-                        <div style="font-size:0.8rem; color:#666">${status.txt}</div>
-                    </div>
-                    <div class="status-dot ${status.classe}"></div>
-                </div>
-            `;
-
-            // Render Gestão
-            listaAdmin.innerHTML += `
+        db.forEach(f => {
+            const s = calcularStatus(f);
+            const html = `
                 <div class="card item">
-                    <span>${f.nome} (${f.escala})</span>
-                    <button class="btn-del" onclick="excluirFuncionario(${f.id})">🗑</button>
+                    <div class="info">
+                        <b>${f.nome} <span class="badge">${f.cargo}</span></b>
+                        <span>Posto: ${f.posto} | ${f.escala} | ${s.txt}</span>
+                    </div>
+                    <div class="status-dot ${s.cl}"></div>
+                </div>
+            `;
+            
+            if(f.cargo === "Fiscal" || f.cargo === "Inspetor") sup.innerHTML += html;
+            else ope.innerHTML += html;
+
+            adm.innerHTML += `
+                <div class="card item">
+                    <span>${f.nome} (${f.cargo})</span>
+                    <button class="btn-sec" onclick="excluir(${f.id})">🗑 Excluir</button>
                 </div>
             `;
         });
     }
 
-    function filtrar() {
-        let termo = document.getElementById("busca").value.toLowerCase();
-        document.querySelectorAll(".item-func").forEach(card => {
-            let nome = card.getAttribute("data-nome").toLowerCase();
-            card.style.display = nome.includes(termo) ? "flex" : "none";
-        });
+    function excluir(id) {
+        if(confirm("Deseja excluir?")) {
+            db = db.filter(x => x.id !== id);
+            localStorage.setItem("db_quantica_v2", JSON.stringify(db));
+            render();
+        }
     }
 
-    renderizar();
-</script>
+    // PDF RELATÓRIO DO DIA
+    function gerarRelatorioDia() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(16);
+        doc.text("QUÂNTICA - RELATÓRIO DE SERVIÇO DIÁRIO", 10, 15);
+        doc.setFontSize(10);
+        doc.text("Data: " + new Date().toLocaleDateString(), 10, 22);
+        
+        let y = 35;
+        db.forEach(f => {
+            const s = calcularStatus(f);
+            if(s.txt !== "Folga") {
+                doc.text(`${f.cargo}: ${f.nome} | Posto: ${f.posto} | Status: ${s.txt}`, 10, y);
+                y += 8;
+            }
+        });
+        doc.save(`relatorio_diario.pdf`);
+    }
 
+    // PDF ESCALA MENSAL
+    function gerarRelatorioMensal() {
+        const nomeAlvo = prompt("Digite o nome do funcionário para gerar a escala do mês:");
+        const f = db.find(x => x.nome.toLowerCase().includes(nomeAlvo.toLowerCase()));
+        
+        if(!f) return alert("Funcionário não encontrado!");
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text(`ESCALA MENSAL: ${f.nome} (${f.cargo})`, 10, 15);
+        doc.text(`Posto: ${f.posto} | Escala: ${f.escala}`, 10, 22);
+
+        let y = 35;
+        let dataLoop = new Date();
+        for(let i=0; i<30; i++) {
+            const s = calcularStatus(f, dataLoop);
+            doc.text(`${dataLoop.toLocaleDateString()}: ${s.txt}`, 10, y);
+            y += 7;
+            dataLoop.setDate(dataLoop.getDate() + 1);
+            if(y > 280) { doc.addPage(); y = 20; }
+        }
+        doc.save(`escala_mensal_${f.nome}.pdf`);
+    }
+
+    function exportarDados() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
+        const dl = document.createElement('a');
+        dl.setAttribute("href", dataStr);
+        dl.setAttribute("download", "backup_quantica.json");
+        dl.click();
+    }
+
+    function importarDados(input) {
+        const reader = new FileReader();
+        reader.onload = function(){
+            db = JSON.parse(reader.result);
+            localStorage.setItem("db_quantica_v2", JSON.stringify(db));
+            render();
+            alert("Dados Importados!");
+        };
+        reader.readAsText(input.files[0]);
+    }
+
+    render();
+</script>
 </body>
 </html>
