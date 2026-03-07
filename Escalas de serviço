@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quântica - Gestão de Escalas</title>
+    <style>
+        :root {
+            --primary: #1a237e; --secondary: #0d47a1; --accent: #2979ff;
+            --success: #2e7d32; --danger: #c62828; --warning: #f9a825;
+            --bg: #f5f5f5; --white: #ffffff;
+        }
+
+        body { font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; background: var(--bg); color: #333; padding-bottom: 70px; }
+        
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; font-size: 1.2rem; font-weight: bold; position: sticky; top: 0; z-index: 100; }
+
+        .container { padding: 15px; max-width: 600px; margin: auto; }
+
+        /* Navegação Inferior */
+        nav { position: fixed; bottom: 0; width: 100%; background: var(--white); display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid #ddd; z-index: 100; }
+        nav button { background: none; border: none; font-size: 0.9rem; color: #666; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        nav button.active { color: var(--primary); font-weight: bold; }
+
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* Cards e Listas */
+        .card { background: var(--white); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .item:last-child { border: none; }
+
+        /* Status Colors */
+        .status-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 3px rgba(0,0,0,0.2); }
+        .st-posto { background: var(--success); }   /* Verde */
+        .st-base { background: var(--accent); }     /* Azul */
+        .st-folga { background: var(--danger); }    /* Vermelho */
+
+        /* Formulários */
+        input, select, button.primary { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+        button.primary { background: var(--primary); color: white; border: none; font-weight: bold; font-size: 1rem; }
+        .btn-del { background: none; border: none; color: var(--danger); font-size: 1.2rem; cursor: pointer; }
+
+        .badge { font-size: 0.7rem; padding: 3px 6px; border-radius: 12px; background: #e3f2fd; color: #0d47a1; margin-left: 5px; font-weight: bold; }
+        .date-ref { text-align: center; font-weight: bold; margin-bottom: 10px; color: var(--secondary); }
+    </style>
+</head>
+<body>
+
+<header>QUÂNTICA - OPERACIONAL</header>
+
+<div class="container">
+    
+    <div id="painel" class="page active">
+        <div class="date-ref" id="txtHoje"></div>
+        <input type="text" id="busca" placeholder="🔍 Buscar funcionário ou posto..." onkeyup="filtrar()">
+        <div id="listaEfetivo"></div>
+    </div>
+
+    <div id="gestao" class="page">
+        <div class="card">
+            <h3>Cadastrar Funcionário</h3>
+            <input type="text" id="cadNome" placeholder="Nome Completo">
+            <label>Escala:</label>
+            <select id="cadEscala">
+                <option value="12x36">12x36 (Dia Sim/Não)</option>
+                <option value="6x1">6x1 (Tradicional)</option>
+                <option value="5x1">5x1 (Tradicional)</option>
+                <option value="4x2">4x2 (Tradicional)</option>
+                <option value="2x1">2x1 (Tradicional)</option>
+                <option value="2x1-folguista">2x1 Folguista (Posto/Base/Folga)</option>
+                <option value="4x2-folguista">4x2 Folguista (Posto/Base/Folga)</option>
+            </select>
+            <label>Data de Início (1º dia de serviço):</label>
+            <input type="date" id="cadData">
+            <button class="primary" onclick="salvarFuncionario()">Adicionar à Lista</button>
+        </div>
+        <div id="listaAdmin"></div>
+    </div>
+
+</div>
+
+<nav>
+    <button onclick="mudarPagina('painel', this)" class="active"><span>📋</span>Painel</button>
+    <button onclick="mudarPagina('gestao', this)"><span>⚙️</span>Gestão</button>
+</nav>
+
+<script>
+    // Banco de dados local
+    let efetivo = JSON.parse(localStorage.getItem("quantica_efetivo")) || [];
+
+    function mudarPagina(id, btn) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+        renderizar();
+    }
+
+    function salvarFuncionario() {
+        const novo = {
+            id: Date.now(),
+            nome: document.getElementById('cadNome').value,
+            escala: document.getElementById('cadEscala').value,
+            dataInicio: document.getElementById('cadData').value
+        };
+
+        if(!novo.nome || !novo.dataInicio) return alert("Preencha tudo!");
+        
+        efetivo.push(novo);
+        localStorage.setItem("quantica_efetivo", JSON.stringify(efetivo));
+        alert("Funcionário cadastrado!");
+        renderizar();
+    }
+
+    function excluirFuncionario(id) {
+        if(confirm("Remover funcionário?")) {
+            efetivo = efetivo.filter(f => f.id !== id);
+            localStorage.setItem("quantica_efetivo", JSON.stringify(efetivo));
+            renderizar();
+        }
+    }
+
+    function calcularStatus(func) {
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
+        const inicio = new Date(func.dataInicio + "T00:00:00");
+        const diff = Math.floor((hoje - inicio) / (1000 * 60 * 60 * 24));
+
+        if (diff < 0) return { classe: "st-folga", txt: "Não iniciado" };
+
+        switch(func.escala) {
+            case "12x36":
+                return (diff % 2 === 0) ? { classe: "st-posto", txt: "Serviço" } : { classe: "st-folga", txt: "Folga" };
+            case "6x1":
+                return (diff % 7 < 6) ? { classe: "st-posto", txt: "Serviço" } : { classe: "st-folga", txt: "Folga" };
+            case "5x1":
+                return (diff % 6 < 5) ? { classe: "st-posto", txt: "Serviço" } : { classe: "st-folga", txt: "Folga" };
+            case "4x2":
+                return (diff % 6 < 4) ? { classe: "st-posto", txt: "Serviço" } : { classe: "st-folga", txt: "Folga" };
+            case "2x1":
+                return (diff % 3 < 2) ? { classe: "st-posto", txt: "Serviço" } : { classe: "st-folga", txt: "Folga" };
+            case "2x1-folguista":
+                let r3 = diff % 3;
+                if(r3 === 0) return { classe: "st-posto", txt: "Posto" };
+                if(r3 === 1) return { classe: "st-base", txt: "Na Base" };
+                return { classe: "st-folga", txt: "Folga" };
+            case "4x2-folguista":
+                let r6 = diff % 6;
+                if(r6 < 2) return { classe: "st-posto", txt: "Posto" };
+                if(r6 < 4) return { classe: "st-base", txt: "Na Base" };
+                return { classe: "st-folga", txt: "Folga" };
+            default:
+                return { classe: "st-posto", txt: "Serviço" };
+        }
+    }
+
+    function renderizar() {
+        const listaPainel = document.getElementById("listaEfetivo");
+        const listaAdmin = document.getElementById("listaAdmin");
+        const txtHoje = document.getElementById("txtHoje");
+        
+        const hoje = new Date();
+        txtHoje.innerText = "📅 " + hoje.toLocaleDateString('pt-BR');
+
+        listaPainel.innerHTML = "";
+        listaAdmin.innerHTML = "<h3>Lista de Funcionários</h3>";
+
+        efetivo.forEach(f => {
+            const status = calcularStatus(f);
+            
+            // Render Painel Operacional
+            listaPainel.innerHTML += `
+                <div class="card item-func" data-nome="${f.nome}">
+                    <div style="flex-grow:1">
+                        <strong>${f.nome}</strong> <span class="badge">${f.escala}</span>
+                        <div style="font-size:0.8rem; color:#666">${status.txt}</div>
+                    </div>
+                    <div class="status-dot ${status.classe}"></div>
+                </div>
+            `;
+
+            // Render Gestão
+            listaAdmin.innerHTML += `
+                <div class="card item">
+                    <span>${f.nome} (${f.escala})</span>
+                    <button class="btn-del" onclick="excluirFuncionario(${f.id})">🗑</button>
+                </div>
+            `;
+        });
+    }
+
+    function filtrar() {
+        let termo = document.getElementById("busca").value.toLowerCase();
+        document.querySelectorAll(".item-func").forEach(card => {
+            let nome = card.getAttribute("data-nome").toLowerCase();
+            card.style.display = nome.includes(termo) ? "flex" : "none";
+        });
+    }
+
+    renderizar();
+</script>
+
+</body>
+</html>
