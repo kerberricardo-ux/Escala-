@@ -114,7 +114,7 @@
 <script>
 let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
 
-// FUNÇÃO DE IMPORTAÇÃO DOCX CORRIGIDA
+// FUNÇÃO DE IMPORTAÇÃO DOCX COM INTRODUÇÃO AUTOMÁTICA
 function importarArquivo(input) {
     if (!input.files[0]) return;
 
@@ -124,26 +124,34 @@ function importarArquivo(input) {
 
         mammoth.extractRawText({arrayBuffer: arrayBuffer})
             .then(function(result) {
-                const texto = result.value;
-                if (!texto.trim()) return alert("Documento sem texto!");
+                const texto = result.value; 
+                if (!texto.trim()) return alert("O documento está vazio!");
 
-                // Lógica de extração simples: Procura por "Nome:" e "Posto:" no arquivo
-                const linhas = texto.split('\n');
+                // Divide em linhas e limpa espaços
+                const linhas = texto.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                
+                let nomeFinal = "";
+                let postoFinal = "";
+
+                // Busca por palavras-chave
                 linhas.forEach(linha => {
-                    const l = linha.toUpperCase();
-                    if(l.includes("NOME:")) document.getElementById("nome").value = l.replace("NOME:","").trim();
-                    if(l.includes("POSTO:")) document.getElementById("posto").value = l.replace("POSTO:","").trim();
+                    const lUpper = linha.toUpperCase();
+                    if(lUpper.includes("NOME:")) nomeFinal = linha.split(/nome:/i)[1].trim();
+                    if(lUpper.includes("POSTO:")) postoFinal = linha.split(/posto:/i)[1].trim();
                 });
 
-                // Se não encontrar tags, joga a primeira linha no Nome
-                if(!document.getElementById("nome").value) {
-                    document.getElementById("nome").value = linhas[0].trim().toUpperCase();
-                }
+                // Se não achou palavras-chave, usa as primeiras linhas
+                if(!nomeFinal && linhas.length > 0) nomeFinal = linhas[0];
+                if(!postoFinal && linhas.length > 1) postoFinal = linhas[1];
 
-                alert("Dados extraídos do Word! Revise o formulário e clique em Salvar.");
-                console.log("Texto extraído:", texto);
+                // Introduz nos campos do formulário
+                document.getElementById("nome").value = nomeFinal.toUpperCase();
+                document.getElementById("posto").value = postoFinal.toUpperCase();
+
+                alert("Dados importados com sucesso! Revise e salve.");
+                console.log("Texto completo do Word:", texto);
             })
-            .catch(err => alert("Erro ao ler o arquivo Word: " + err));
+            .catch(err => alert("Erro ao ler Word: " + err));
     };
     reader.readAsArrayBuffer(input.files[0]);
 }
