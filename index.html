@@ -1,363 +1,409 @@
-
-     <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quântica - Gestão Operacional</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.8/mammoth.browser.min.js"></script>
-    <style>
-        :root {
-            --primary: #1a237e; --secondary: #0d47a1; --accent: #2979ff;
-            --success: #2e7d32; --danger: #c62828; --bg: #f5f5f5; --white: #ffffff;
-        }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); padding-bottom: 90px; }
-        header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .container { padding: 15px; max-width: 800px; margin: auto; }
-        
-        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid #ddd; z-index: 100; }
-        nav button { background: none; border: none; font-size: 0.75rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; color: #666; width: 33%; }
-        nav button.active { color: var(--primary); font-weight: bold; }
-        nav .icon { font-size: 1.4rem; margin-bottom: 2px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quântica - Gestão Operacional</title>
 
-        .page { display: none; }
-        .page.active { display: block; }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.8/mammoth.browser.min.js"></script>
 
-        .section-title { font-size: 0.85rem; color: var(--primary); background: #e8eaf6; padding: 10px; border-left: 5px solid var(--primary); margin: 20px 0 10px 0; text-transform: uppercase; font-weight: bold; border-radius: 4px; }
-        .section-volante { color: #5d4037; background: #efebe9; border-left-color: #5d4037; }
+<style>
 
-        .card { background: var(--white); border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: 1px solid #eee; }
-        .item { display: flex; justify-content: space-between; align-items: center; }
-        .info b { display: block; font-size: 1rem; color: #222; }
-        .info span { font-size: 0.8rem; color: #555; display: block; margin-top: 3px; }
+:root{
+--primary:#1a237e;
+--secondary:#0d47a1;
+--accent:#2979ff;
+--success:#2e7d32;
+--danger:#c62828;
+--bg:#f5f5f5;
+--white:#ffffff;
+}
 
-        .status-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 2px rgba(0,0,0,0.3); }
-        .st-servico { background: var(--success); }
-        .st-folga { background: #9e9e9e; }
+body{
+font-family:'Segoe UI',sans-serif;
+margin:0;
+background:var(--bg);
+padding-bottom:90px;
+}
 
-        input, select, button.btn-p { width: 100%; padding: 12px; margin: 5px 0 12px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 1rem; }
-        button.btn-p { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button.btn-p:active { transform: scale(0.98); }
-        
-        .btn-sec { background: #f5f5f5; border: 1px solid #ddd; padding: 10px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; color: #444; font-weight: 500; }
-        .btn-edit { background: var(--accent); color: white; border: none; padding: 8px 15px; }
-        .btn-del { background: #ffebee; color: var(--danger); border: 1px solid var(--danger); padding: 8px 15px; }
+header{
+background:var(--primary);
+color:white;
+padding:15px;
+text-align:center;
+font-weight:bold;
+position:sticky;
+top:0;
+z-index:100;
+}
 
-        .badge { font-size: 0.7rem; padding: 2px 8px; background: #cfd8dc; border-radius: 10px; color: #37474f; font-weight: bold; }
-        .search-container { position: sticky; top: 60px; background: var(--bg); padding-bottom: 10px; z-index: 80; }
-    </style>
+.container{
+padding:15px;
+max-width:800px;
+margin:auto;
+}
+
+nav{
+position:fixed;
+bottom:0;
+width:100%;
+background:white;
+display:flex;
+justify-content:space-around;
+padding:10px 0;
+border-top:2px solid #ddd;
+}
+
+nav button{
+background:none;
+border:none;
+font-size:0.75rem;
+display:flex;
+flex-direction:column;
+align-items:center;
+color:#666;
+width:33%;
+}
+
+nav button.active{
+color:var(--primary);
+font-weight:bold;
+}
+
+.icon{
+font-size:1.4rem;
+}
+
+.page{
+display:none;
+}
+
+.page.active{
+display:block;
+}
+
+.section-title{
+font-size:0.85rem;
+color:var(--primary);
+background:#e8eaf6;
+padding:10px;
+border-left:5px solid var(--primary);
+margin:20px 0 10px 0;
+text-transform:uppercase;
+font-weight:bold;
+}
+
+.card{
+background:white;
+border-radius:12px;
+padding:15px;
+margin-bottom:12px;
+box-shadow:0 2px 4px rgba(0,0,0,0.1);
+}
+
+.item{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.status-dot{
+width:14px;
+height:14px;
+border-radius:50%;
+}
+
+.st-servico{
+background:var(--success);
+}
+
+.st-folga{
+background:#9e9e9e;
+}
+
+input,select,button{
+width:100%;
+padding:12px;
+margin:5px 0 12px;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+.btn-p{
+background:var(--primary);
+color:white;
+font-weight:bold;
+}
+
+.btn-sec{
+background:#f5f5f5;
+border:1px solid #ddd;
+padding:10px;
+border-radius:8px;
+}
+
+.badge{
+font-size:0.7rem;
+padding:2px 8px;
+background:#cfd8dc;
+border-radius:10px;
+}
+
+</style>
 </head>
+
 <body>
 
 <header>QUÂNTICA - OPERACIONAL</header>
 
 <div class="container">
-    
-    <div id="painel" class="page active">
-        <div style="text-align:center; font-size: 0.85rem; font-weight: bold; color: #666; margin-bottom:10px;" id="dataHoje"></div>
-        <div class="section-title">👮 Supervisão (Fiscais / Inspetores)</div>
-        <div id="listaSuperv"></div>
-        <div class="section-title section-volante">🚗 Volantes / Reservas (Em Serviço)</div>
-        <div id="listaReservas"></div>
-    </div>
 
-    <div id="busca" class="page">
-        <div class="search-container">
-            <input type="text" id="inputBuscaPosto" placeholder="🔍 Digite o nome do posto para ver a equipe..." onkeyup="filtrarPosto()">
-        </div>
-        <div id="resultadoBusca"></div>
-    </div>
+<div id="painel" class="page active">
 
-    <div id="gestao" class="page">
-        <div class="card">
-            <h2 id="tituloForm" style="font-size: 1.1rem; margin: 0 0 15px 0; color: var(--primary);">Cadastrar / Editar Funcionário</h2>
-            <input type="hidden" id="editId">
-            <input type="text" id="nome" placeholder="Nome Completo">
-            <input type="text" id="matricula" placeholder="Matrícula">
-            
-            <label style="font-size: 0.8rem; font-weight: bold; color: #555;">Posto de Trabalho:</label>
-            <select id="posto"><option value="">Selecione o Posto...</option></select>
-            
-            <label style="font-size: 0.8rem; font-weight: bold; color: #555;">Função:</label>
-            <select id="cargo">
-                <option value="ASP">ASP</option>
-                <option value="Fiscal">Fiscal</option>
-                <option value="Inspetor">Inspetor</option>
-                <option value="Reserva">Reserva / Volante</option>
-                <option value="Lider">Líder</option>
-            </select>
+<div style="text-align:center;font-size:0.85rem;font-weight:bold;color:#666" id="dataHoje"></div>
 
-            <label style="font-size: 0.8rem; font-weight: bold; color: #555;">Escala:</label>
-            <select id="escala">
-                <option value="12x36">12x36</option>
-                <option value="6x1">6x1</option>
-                <option value="5x1">5x1</option>
-                <option value="2x1-folguista">2x1 Folguista</option>
-            </select>
-            
-            <label style="font-size: 0.8rem; font-weight: bold; color: #555;">Data de Início:</label>
-            <input type="date" id="dataInicio">
-            
-            <button class="btn-p" id="btnSalvar" onclick="salvar()">Salvar Dados</button>
-            <button class="btn-sec" id="btnCancelar" style="display:none; width: 100%; margin-top: 5px;" onclick="limparForm()">Cancelar Edição</button>
-        </div>
+<div style="text-align:center;margin:10px 0">
+<span style="background:#e8f5e9;padding:6px 12px;border-radius:8px;font-weight:bold;color:#2e7d32">
+👮 Em serviço hoje: <span id="qtdServico">0</span>
+</span>
+</div>
 
-        <div class="card">
-            <h3 style="font-size: 0.9rem; margin-top: 0;">Relatórios e Importação</h3>
-            <button class="btn-p" style="background:#455a64" onclick="gerarRelatorioDia()">📄 PDF: Relatório de Serviço</button>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
-                <button class="btn-sec" onclick="exportarDados()">Backup JSON</button>
-                <button class="btn-sec" onclick="document.getElementById('fileIn').click()">Importar JSON</button>
-                <button class="btn-sec" style="grid-column: span 2; border: 1px solid var(--success); background: #e8f5e9;" onclick="document.getElementById('fileDoc').click()">📂 Importar Lista (Word/TXT)</button>
-            </div>
-            
-            <input type="file" id="fileIn" style="display:none" onchange="importarDados(this)">
-            <input type="file" id="fileDoc" style="display:none" accept=".docx, .doc, .txt" onchange="processarArquivoLista(this)">
-        </div>
+<div style="text-align:center;margin-bottom:15px">
+<button class="btn-sec" onclick="mostrarFolgas()">📅 Quem está de folga hoje</button>
+</div>
 
-        <div id="listaAdmin"></div>
-    </div>
+<div id="listaFolgas"></div>
+
+<div class="section-title">👮 Supervisão</div>
+<div id="listaSuperv"></div>
+
+<div class="section-title">🚗 Volantes / Reservas</div>
+<div id="listaReservas"></div>
+
+</div>
+
+
+<div id="gestao" class="page">
+
+<div class="card">
+
+<h3>Cadastrar Funcionário</h3>
+
+<input type="hidden" id="editId">
+
+<input type="text" id="nome" placeholder="Nome">
+
+<input type="text" id="matricula" placeholder="Matrícula">
+
+<select id="posto">
+<option value="POSTO CENTRAL">POSTO CENTRAL</option>
+</select>
+
+<select id="cargo">
+
+<option value="ASP">ASP</option>
+<option value="Fiscal">Fiscal</option>
+<option value="Inspetor">Inspetor</option>
+<option value="Reserva">Reserva</option>
+
+</select>
+
+<select id="escala">
+
+<option value="12x36">12x36</option>
+<option value="6x1">6x1</option>
+<option value="5x1">5x1</option>
+<option value="5x2">5x2</option>
+<option value="4x2">4x2</option>
+<option value="2x1-folguista">2x1</option>
+
+</select>
+
+<input type="date" id="dataInicio">
+
+<button class="btn-p" onclick="salvar()">Salvar</button>
+
+</div>
+
+<div id="listaAdmin"></div>
+
+</div>
+
 </div>
 
 <nav>
-    <button onclick="mudarPagina('painel', this)" class="active"><span class="icon">📋</span>Painel</button>
-    <button onclick="mudarPagina('busca', this)"><span class="icon">🔍</span>Postos</button>
-    <button onclick="mudarPagina('gestao', this)"><span class="icon">⚙️</span>Gestão</button>
+
+<button onclick="mudarPagina('painel',this)" class="active">
+<span class="icon">📋</span>Painel
+</button>
+
+<button onclick="mudarPagina('gestao',this)">
+<span class="icon">⚙️</span>Gestão
+</button>
+
 </nav>
 
+
 <script>
-    let postosLista = JSON.parse(localStorage.getItem("postos_quantica")) || ["POSTO CENTRAL"];
-    let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
 
-    function popularPostos() {
-        const select = document.getElementById('posto');
-        const valorAtual = select.value;
-        select.innerHTML = '<option value="">Selecione o Posto...</option>';
-        postosLista.sort().forEach(p => { 
-            select.innerHTML += `<option value="${p}">${p}</option>`; 
-        });
-        if(valorAtual) select.value = valorAtual;
-    }
+let db=JSON.parse(localStorage.getItem("db_quantica_vFinal"))||[]
 
-    function mudarPagina(id, btn) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        btn.classList.add('active');
-        render();
-    }
+function mudarPagina(id,btn){
 
-    function calcularStatus(f, dataAlvo = new Date()) {
-        dataAlvo.setHours(0,0,0,0);
-        const inicio = new Date(f.dataInicio + "T00:00:00");
-        const diff = Math.floor((dataAlvo - inicio) / 86400000);
-        if(diff < 0) return { cl: "st-folga", txt: "A iniciar" };
-        if(f.escala === "12x36") return (diff % 2 === 0) ? { cl: "st-servico", txt: "Serviço" } : { cl: "st-folga", txt: "Folga" };
-        if(f.escala === "6x1") return (diff % 7 < 6) ? { cl: "st-servico", txt: "Serviço" } : { cl: "st-folga", txt: "Folga" };
-        if(f.escala === "5x1") return (diff % 6 < 5) ? { cl: "st-servico", txt: "Serviço" } : { cl: "st-folga", txt: "Folga" };
-        if(f.escala === "2x1-folguista") return (diff % 3 < 2) ? { cl: "st-servico", txt: "Serviço" } : { cl: "st-folga", txt: "Folga" };
-        return { cl: "st-servico", txt: "Serviço" };
-    }
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"))
+document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"))
 
-    // --- IMPORTAÇÃO WORD / TXT ---
-    async function processarArquivoLista(input) {
-        const file = input.files[0];
-        if (!file) return;
-        let textoBruto = "";
-        try {
-            if (file.name.endsWith(".docx") || file.name.endsWith(".doc")) {
-                const arrayBuffer = await file.arrayBuffer();
-                const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
-                textoBruto = result.value;
-            } else {
-                textoBruto = await file.text();
-            }
-            importarListaTexto(textoBruto);
-        } catch (e) {
-            alert("Erro ao ler arquivo: " + e.message);
-        }
-        input.value = ""; // Limpa o input
-    }
+document.getElementById(id).classList.add("active")
+btn.classList.add("active")
 
-    function importarListaTexto(texto) {
-        const linhas = texto.split('\n');
-        let novosFuncionarios = [];
-        let novosPostos = new Set(postosLista);
-        let dataPadrao = new Date().toISOString().split('T')[0];
+render()
 
-        linhas.forEach((linha, index) => {
-            const partes = linha.trim().split(';');
-            if (partes.length >= 4) {
-                const [nome, matricula, posto, status] = partes;
-                if (nome && status.trim().toLowerCase() === "ativo") {
-                    const postoNome = posto.toUpperCase().trim();
-                    novosPostos.add(postoNome);
-                    novosFuncionarios.push({
-                        id: Date.now() + index,
-                        nome: nome.toUpperCase().trim(),
-                        matricula: matricula.trim(),
-                        posto: postoNome,
-                        cargo: "ASP",
-                        escala: "12x36",
-                        dataInicio: dataPadrao
-                    });
-                }
-            }
-        });
+}
 
-        if (novosFuncionarios.length > 0) {
-            if (confirm(`Encontrados ${novosFuncionarios.length} ativos. Deseja adicionar à lista?`)) {
-                db = [...db, ...novosFuncionarios];
-                postosLista = Array.from(novosPostos);
-                localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-                localStorage.setItem("postos_quantica", JSON.stringify(postosLista));
-                popularPostos();
-                render();
-                alert("Importação concluída!");
-            }
-        } else {
-            alert("Nenhum funcionário 'Ativo' encontrado no padrão Nome;Matricula;Posto;Status");
-        }
-    }
+function calcularStatus(f){
 
-    function salvar() {
-        const id = document.getElementById('editId').value;
-        const dados = {
-            id: id ? parseInt(id) : Date.now(),
-            nome: document.getElementById('nome').value.toUpperCase().trim(),
-            matricula: document.getElementById('matricula').value.trim(),
-            posto: document.getElementById('posto').value,
-            cargo: document.getElementById('cargo').value,
-            escala: document.getElementById('escala').value,
-            dataInicio: document.getElementById('dataInicio').value
-        };
-        if(!dados.nome || !dados.dataInicio || !dados.posto) return alert("Preencha Nome, Posto e Data!");
-        
-        if(id) db = db.map(f => f.id === parseInt(id) ? dados : f);
-        else db.push(dados);
+let hoje=new Date()
+hoje.setHours(0,0,0,0)
 
-        localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-        limparForm(); render(); alert("Salvo!");
-    }
+let inicio=new Date(f.dataInicio)
+let diff=Math.floor((hoje-inicio)/86400000)
 
-    function editar(id) {
-        const f = db.find(x => x.id === id);
-        if(!f) return;
-        document.getElementById('editId').value = f.id;
-        document.getElementById('nome').value = f.nome;
-        document.getElementById('matricula').value = f.matricula;
-        document.getElementById('posto').value = f.posto;
-        document.getElementById('cargo').value = f.cargo;
-        document.getElementById('escala').value = f.escala;
-        document.getElementById('dataInicio').value = f.dataInicio;
-        document.getElementById('tituloForm').innerText = "✏️ Editando: " + f.nome;
-        document.getElementById('btnCancelar').style.display = "block";
-        window.scrollTo(0,0);
-    }
+if(diff<0)return{txt:"Folga",cl:"st-folga"}
 
-    function limparForm() {
-        document.getElementById('editId').value = "";
-        document.getElementById('nome').value = "";
-        document.getElementById('matricula').value = "";
-        document.getElementById('dataInicio').value = "";
-        document.getElementById('tituloForm').innerText = "Cadastrar Funcionário";
-        document.getElementById('btnCancelar').style.display = "none";
-    }
+if(f.escala==="12x36")return diff%2===0?{txt:"Serviço",cl:"st-servico"}:{txt:"Folga",cl:"st-folga"}
 
-    function excluir(id) {
-        if(confirm("Excluir funcionário?")) {
-            db = db.filter(x => x.id !== id);
-            localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-            render();
-        }
-    }
+if(f.escala==="6x1")return diff%7<6?{txt:"Serviço",cl:"st-servico"}:{txt:"Folga",cl:"st-folga"}
 
-    function render() {
-        const sup = document.getElementById("listaSuperv");
-        const resv = document.getElementById("listaReservas");
-        const adm = document.getElementById("listaAdmin");
-        document.getElementById("dataHoje").innerText = "HOJE: " + new Date().toLocaleDateString('pt-BR');
+if(f.escala==="5x1")return diff%6<5?{txt:"Serviço",cl:"st-servico"}:{txt:"Folga",cl:"st-folga"}
 
-        sup.innerHTML = ""; resv.innerHTML = ""; adm.innerHTML = "<div class='section-title'>👥 Funcionários Cadastrados</div>";
+if(f.escala==="5x2")return diff%7<5?{txt:"Serviço",cl:"st-servico"}:{txt:"Folga",cl:"st-folga"}
 
-        db.sort((a,b) => a.nome.localeCompare(b.nome)).forEach(f => {
-            const s = calcularStatus(f);
-            const cardHtml = `
-                <div class="card item">
-                    <div class="info"><b>${f.nome} <span class="badge">Mtr: ${f.matricula}</span></b><span>Posto: ${f.posto}</span></div>
-                    <div style="text-align:right">
-                        <span style="font-size:0.7rem; font-weight:bold; color:${s.cl=='st-servico'?'green':'#777'}">${s.txt}</span>
-                        <div class="status-dot ${s.cl}"></div>
-                    </div>
-                </div>`;
-            if(f.cargo === "Fiscal" || f.cargo === "Inspetor") sup.innerHTML += cardHtml;
-            else if(f.cargo === "Reserva" && s.txt === "Serviço") resv.innerHTML += cardHtml;
+if(f.escala==="4x2")return diff%6<4?{txt:"Serviço",cl:"st-servico"}:{txt:"Folga",cl:"st-folga"}
 
-            adm.innerHTML += `
-                <div class="card item">
-                    <div class="info"><b>${f.nome}</b><span>${f.cargo} - ${f.posto}</span></div>
-                    <div style="display:flex; gap: 5px;">
-                        <button class="btn-sec btn-edit" onclick="editar(${f.id})">Editar</button>
-                        <button class="btn-sec btn-del" onclick="excluir(${f.id})">X</button>
-                    </div>
-                </div>`;
-        });
-    }
+if(f.escala==="2x1-folguista")return diff%3<2?{txt:"Serviço",cl:"st-servico"}:{txt:"Folga",cl:"st-folga"}
 
-    function filtrarPosto() {
-        const termo = document.getElementById("inputBuscaPosto").value.toLowerCase();
-        const res = document.getElementById("resultadoBusca");
-        res.innerHTML = "";
-        if(termo.length < 2) return;
-        postosLista.filter(p => p.toLowerCase().includes(termo)).forEach(pNome => {
-            const equipe = db.filter(f => f.posto === pNome);
-            let html = `<div class="card"><h3 style="margin:0; font-size:1rem; color:var(--primary);">📍 ${pNome}</h3>`;
-            equipe.forEach(f => {
-                const s = calcularStatus(f);
-                html += `<div style="display:flex; justify-content:space-between; padding:8px 0; border-top:1px solid #eee;">
-                    <span>${f.nome}</span><span style="color:${s.cl=='st-servico'?'green':'#999'}">${s.txt}</span>
-                </div>`;
-            });
-            res.innerHTML += html + "</div>";
-        });
-    }
+return{txt:"Serviço",cl:"st-servico"}
 
-    function gerarRelatorioDia() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text("QUÂNTICA - RELATÓRIO OPERACIONAL", 10, 10);
-        let y = 20;
-        db.forEach(f => {
-            const s = calcularStatus(f);
-            if(s.txt === "Serviço") {
-                doc.text(`${f.nome} - ${f.posto} (${f.cargo})`, 10, y);
-                y += 10;
-            }
-        });
-        doc.save("relatorio.pdf");
-    }
+}
 
-    function exportarDados() {
-        const blob = new Blob([JSON.stringify(db)], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = "backup.json"; a.click();
-    }
+function salvar(){
 
-    function importarDados(input) {
-        const reader = new FileReader();
-        reader.onload = e => {
-            db = JSON.parse(e.target.result);
-            localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-            render(); alert("Importado!");
-        };
-        reader.readAsText(input.files[0]);
-    }
+let dados={
 
-    popularPostos();
-    render();
+id:Date.now(),
+
+nome:document.getElementById("nome").value,
+
+matricula:document.getElementById("matricula").value,
+
+posto:document.getElementById("posto").value,
+
+cargo:document.getElementById("cargo").value,
+
+escala:document.getElementById("escala").value,
+
+dataInicio:document.getElementById("dataInicio").value
+
+}
+
+db.push(dados)
+
+localStorage.setItem("db_quantica_vFinal",JSON.stringify(db))
+
+render()
+
+}
+
+function render(){
+
+let sup=document.getElementById("listaSuperv")
+let res=document.getElementById("listaReservas")
+let adm=document.getElementById("listaAdmin")
+
+sup.innerHTML=""
+res.innerHTML=""
+adm.innerHTML=""
+
+document.getElementById("dataHoje").innerText="HOJE: "+new Date().toLocaleDateString('pt-BR')
+
+let totalServico=0
+
+db.forEach(f=>{
+
+let s=calcularStatus(f)
+
+if(s.txt==="Serviço")totalServico++
+
+let card=
+
+`<div class="card item">
+
+<div>
+
+<b>${f.nome}</b><br>
+<span>${f.posto}</span>
+
+</div>
+
+<div>
+
+${s.txt}
+<div class="status-dot ${s.cl}"></div>
+
+</div>
+
+</div>`
+
+if(f.cargo==="Fiscal"||f.cargo==="Inspetor")sup.innerHTML+=card
+
+if(f.cargo==="Reserva"&&s.txt==="Serviço")res.innerHTML+=card
+
+adm.innerHTML+=card
+
+})
+
+document.getElementById("qtdServico").innerText=totalServico
+
+}
+
+function mostrarFolgas(){
+
+let lista=document.getElementById("listaFolgas")
+
+lista.innerHTML="<div class='section-title'>Funcionários de Folga</div>"
+
+db.forEach(f=>{
+
+let s=calcularStatus(f)
+
+if(s.txt==="Folga"){
+
+lista.innerHTML+=`
+
+<div class="card item">
+
+<div>
+
+<b>${f.nome}</b>
+<br>
+<span>${f.posto}</span>
+
+</div>
+
+</div>
+
+`
+
+}
+
+})
+
+}
+
+render()
+
 </script>
+
 </body>
 </html>
-       
