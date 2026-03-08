@@ -3,153 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quântica - Gestão Operacional</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.8/mammoth.browser.min.js"></script>
+<title>Quântica - Gestão Operacional Pro</title>
 
 <style>
-
 :root{
 --primary:#1a237e;
 --secondary:#0d47a1;
 --accent:#2979ff;
 --success:#2e7d32;
 --danger:#c62828;
+--warning:#f57c00;
 --bg:#f5f5f5;
 --white:#ffffff;
 }
 
-body{
-font-family:'Segoe UI',sans-serif;
-margin:0;
-background:var(--bg);
-padding-bottom:90px;
-}
+body{ font-family:'Segoe UI',sans-serif; margin:0; background:var(--bg); padding-bottom:90px; }
+header{ background:var(--primary); color:white; padding:15px; text-align:center; font-weight:bold; position:sticky; top:0; z-index:100; }
+.container{ padding:15px; max-width:800px; margin:auto; }
 
-header{
-background:var(--primary);
-color:white;
-padding:15px;
-text-align:center;
-font-weight:bold;
-position:sticky;
-top:0;
-z-index:100;
-}
+nav{ position:fixed; bottom:0; width:100%; background:white; display:flex; justify-content:space-around; padding:10px 0; border-top:2px solid #ddd; z-index:100;}
+nav button{ background:none; border:none; font-size:0.75rem; display:flex; flex-direction:column; align-items:center; color:#666; width:33%; cursor:pointer;}
+nav button.active{ color:var(--primary); font-weight:bold; }
 
-.container{
-padding:15px;
-max-width:800px;
-margin:auto;
-}
+.page{ display:none; }
+.page.active{ display:block; }
 
-nav{
-position:fixed;
-bottom:0;
-width:100%;
-background:white;
-display:flex;
-justify-content:space-around;
-padding:10px 0;
-border-top:2px solid #ddd;
-}
+.section-title{ font-size:0.85rem; color:var(--primary); background:#e8eaf6; padding:10px; border-left:5px solid var(--primary); margin:20px 0 10px 0; text-transform:uppercase; font-weight:bold; display:flex; justify-content:space-between; }
+.card{ background:white; border-radius:12px; padding:15px; margin-bottom:12px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+.item{ display:flex; justify-content:space-between; align-items:center; }
 
-nav button{
-background:none;
-border:none;
-font-size:0.75rem;
-display:flex;
-flex-direction:column;
-align-items:center;
-color:#666;
-width:33%;
-}
+.status-dot{ width:12px; height:12px; border-radius:50%; display:inline-block; }
+.st-servico{ background:var(--success); }
+.st-folga{ background:#9e9e9e; }
 
-nav button.active{
-color:var(--primary);
-font-weight:bold;
-}
+input, select, button { width:100%; padding:12px; margin:5px 0; border-radius:8px; border:1px solid #ccc; box-sizing: border-box; }
+.btn-p{ background:var(--primary); color:white; font-weight:bold; cursor:pointer; border:none; }
+.btn-backup{ background:var(--success); color:white; margin-top:20px; border:none; cursor:pointer;}
+.search-box { background: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ddd; }
 
-.icon{
-font-size:1.4rem;
-}
+.btn-edit { background: #fff9c4; border: 1px solid #fbc02d; width: auto; padding: 5px 10px; cursor:pointer;}
+.btn-del { background: #ffcdd2; border: 1px solid #e53935; width: auto; padding: 5px 10px; cursor:pointer;}
 
-.page{
-display:none;
-}
-
-.page.active{
-display:block;
-}
-
-.section-title{
-font-size:0.85rem;
-color:var(--primary);
-background:#e8eaf6;
-padding:10px;
-border-left:5px solid var(--primary);
-margin:20px 0 10px 0;
-text-transform:uppercase;
-font-weight:bold;
-}
-
-.card{
-background:white;
-border-radius:12px;
-padding:15px;
-margin-bottom:12px;
-box-shadow:0 2px 4px rgba(0,0,0,0.1);
-}
-
-.item{
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
-
-.status-dot{
-width:14px;
-height:14px;
-border-radius:50%;
-}
-
-.st-servico{
-background:var(--success);
-}
-
-.st-folga{
-background:#9e9e9e;
-}
-
-input,select,button{
-width:100%;
-padding:12px;
-margin:5px 0 12px;
-border-radius:8px;
-border:1px solid #ccc;
-}
-
-.btn-p{
-background:var(--primary);
-color:white;
-font-weight:bold;
-}
-
-.btn-sec{
-background:#f5f5f5;
-border:1px solid #ddd;
-padding:10px;
-border-radius:8px;
-}
-
-.badge{
-font-size:0.7rem;
-padding:2px 8px;
-background:#cfd8dc;
-border-radius:10px;
-}
-
+.badge-turno { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; color: white; margin-left: 5px; }
+.dia { background: #fbc02d; color: #000; }
+.noite { background: #303f9f; color: #fff; }
 </style>
 </head>
 
@@ -159,251 +56,227 @@ border-radius:10px;
 
 <div class="container">
 
-<div id="painel" class="page active">
+    <div id="painel" class="page active">
+        <div id="dataHoje" style="text-align:center; margin-bottom:10px; font-weight:bold; color:#666"></div>
+        
+        <input type="text" class="search-box" id="buscaPainel" placeholder="🔍 Buscar por nome ou posto..." onkeyup="render()">
 
-<div style="text-align:center;font-size:0.85rem;font-weight:bold;color:#666" id="dataHoje"></div>
+        <div style="display:flex; gap:10px; margin-bottom:15px">
+            <div style="flex:1; background:#e8f5e9; padding:10px; border-radius:8px; text-align:center">
+                <small>Em Serviço</small><br><b id="qtdServico" style="color:var(--success); font-size:1.2rem">0</b>
+            </div>
+            <button class="btn-sec" style="flex:1; margin:0" onclick="mostrarFolgas()">📅 Ver Folguistas</button>
+        </div>
 
-<div style="text-align:center;margin:10px 0">
-<span style="background:#e8f5e9;padding:6px 12px;border-radius:8px;font-weight:bold;color:#2e7d32">
-👮 Em serviço hoje: <span id="qtdServico">0</span>
-</span>
-</div>
+        <div id="listaFolgas"></div>
+        <div class="section-title">👮 Supervisão</div>
+        <div id="listaSuperv"></div>
+        <div class="section-title">🚗 Volantes / Reservas</div>
+        <div id="listaReservas"></div>
+    </div>
 
-<div style="text-align:center;margin-bottom:15px">
-<button class="btn-sec" onclick="mostrarFolgas()">📅 Quem está de folga hoje</button>
-</div>
+    <div id="gestao" class="page">
+        <div class="card">
+            <h3 id="tituloForm" style="margin-top:0">Cadastro de Funcionário</h3>
+            <input type="hidden" id="editId">
+            <input type="text" id="nome" placeholder="Nome Completo">
+            <input type="text" id="posto" placeholder="Nome do Posto">
+            
+            <div style="display:flex; gap:5px">
+                <select id="cargo">
+                    <option value="ASP">ASP</option>
+                    <option value="Fiscal">Fiscal</option>
+                    <option value="Inspetor">Inspetor</option>
+                    <option value="Reserva">Reserva</option>
+                </select>
+                <select id="turno">
+                    <option value="Diurno">☀️ Diurno</option>
+                    <option value="Noturno">🌙 Noturno</option>
+                </select>
+            </div>
 
-<div id="listaFolgas"></div>
+            <select id="escala">
+                <option value="12x36">12x36</option>
+                <option value="6x1">6x1</option>
+                <option value="5x2">5x2</option>
+            </select>
 
-<div class="section-title">👮 Supervisão</div>
-<div id="listaSuperv"></div>
+            <label style="font-size:0.8rem; color:#666">Data de Início da Escala:</label>
+            <input type="date" id="dataInicio">
 
-<div class="section-title">🚗 Volantes / Reservas</div>
-<div id="listaReservas"></div>
+            <button class="btn-p" onclick="salvar()">Salvar Funcionário</button>
+            <button id="btnCancelar" style="display:none; background:#eee; border:none" onclick="limparForm()">Cancelar Edição</button>
+        </div>
 
-</div>
+        <input type="text" class="search-box" id="buscaGestao" placeholder="🔍 Filtrar lista de funcionários..." onkeyup="render()">
+        
+        <div id="listaAdmin"></div>
 
-
-<div id="gestao" class="page">
-
-<div class="card">
-
-<h3>Cadastrar Funcionário</h3>
-
-<input type="hidden" id="editId">
-
-<input type="text" id="nome" placeholder="Nome">
-
-<input type="text" id="matricula" placeholder="Matrícula">
-
-<select id="posto">
-<option value="POSTO CENTRAL">POSTO CENTRAL</option>
-</select>
-
-<select id="cargo">
-
-<option value="ASP">ASP</option>
-<option value="Fiscal">Fiscal</option>
-<option value="Inspetor">Inspetor</option>
-<option value="Reserva">Reserva</option>
-
-</select>
-
-<select id="escala">
-
-<option value="12x36">12x36</option>
-<option value="6x1">6x1</option>
-<option value="5x1">5x1</option>
-<option value="5x2">5x2</option>
-<option value="4x2">4x2</option>
-<option value="2x1-folguista">2x1</option>
-
-</select>
-
-<input type="date" id="dataInicio">
-
-<button class="btn-p" onclick="salvar()">Salvar</button>
-
-</div>
-
-<div id="listaAdmin"></div>
-
-</div>
+        <button class="btn-backup" onclick="exportarDados()">📥 Exportar Backup (Excel/JSON)</button>
+    </div>
 
 </div>
 
 <nav>
-
-<button onclick="mudarPagina('painel',this)" class="active">
-<span class="icon">📋</span>Painel
-</button>
-
-<button onclick="mudarPagina('gestao',this)">
-<span class="icon">⚙️</span>Gestão
-</button>
-
+    <button onclick="mudarPagina('painel',this)" class="active"><span>📋</span>Painel</button>
+    <button onclick="mudarPagina('gestao',this)"><span>⚙️</span>Gestão</button>
 </nav>
 
-
 <script>
+let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
 
-let db=JSON.parse(localStorage.getItem("db_quantica_vFinal"))||[]
-
-function mudarPagina(id,btn){
-
-document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"))
-document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"))
-
-document.getElementById(id).classList.add("active")
-btn.classList.add("active")
-
-render()
-
+function mudarPagina(id, btn) {
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    btn.classList.add("active");
+    render();
 }
 
-function calcularStatus(f){
+function calcularStatus(f) {
+    let hoje = new Date(); hoje.setHours(0,0,0,0);
+    let inicio = new Date(f.dataInicio);
+    let diff = Math.floor((hoje - inicio) / 86400000);
 
-let hoje=new Date()
-hoje.setHours(0,0,0,0)
-
-let inicio=new Date(f.dataInicio)
-let diff=Math.floor((hoje-inicio)/86400000)
-
-if(diff<0)return{txt:"Folga",cl:"st-folga"}
-
-if(f.escala==="12x36")return diff%2===0?{txt:"Serviço",cl:"st-servico"}:{txt:"Folga",cl:"st-folga"}
-
-if(f.escala==="6x1")return diff%7<6?{txt:"Serviço",cl:"st-servico"}:{txt:"Folga",cl:"st-folga"}
-
-if(f.escala==="5x1")return diff%6<5?{txt:"Serviço",cl:"st-servico"}:{txt:"Folga",cl:"st-folga"}
-
-if(f.escala==="5x2")return diff%7<5?{txt:"Serviço",cl:"st-servico"}:{txt:"Folga",cl:"st-folga"}
-
-if(f.escala==="4x2")return diff%6<4?{txt:"Serviço",cl:"st-servico"}:{txt:"Folga",cl:"st-folga"}
-
-if(f.escala==="2x1-folguista")return diff%3<2?{txt:"Serviço",cl:"st-servico"}:{txt:"Folga",cl:"st-folga"}
-
-return{txt:"Serviço",cl:"st-servico"}
-
+    if(diff < 0) return {txt: "Folga", cl: "st-folga"};
+    if(f.escala === "12x36") return diff % 2 === 0 ? {txt:"Serviço",cl:"st-servico"} : {txt:"Folga",cl:"st-folga"};
+    if(f.escala === "6x1") return diff % 7 < 6 ? {txt:"Serviço",cl:"st-servico"} : {txt:"Folga",cl:"st-folga"};
+    if(f.escala === "5x2") return diff % 7 < 5 ? {txt:"Serviço",cl:"st-servico"} : {txt:"Folga",cl:"st-folga"};
+    
+    return {txt: "Serviço", cl: "st-servico"};
 }
 
-function salvar(){
+function salvar() {
+    let idEdicao = document.getElementById("editId").value;
+    let dados = {
+        id: idEdicao ? parseInt(idEdicao) : Date.now(),
+        nome: document.getElementById("nome").value.toUpperCase(),
+        posto: document.getElementById("posto").value.toUpperCase(),
+        cargo: document.getElementById("cargo").value,
+        turno: document.getElementById("turno").value,
+        escala: document.getElementById("escala").value,
+        dataInicio: document.getElementById("dataInicio").value
+    };
 
-let dados={
+    if(!dados.nome || !dados.dataInicio || !dados.posto) return alert("Preencha os campos obrigatórios!");
 
-id:Date.now(),
+    if(idEdicao) {
+        let index = db.findIndex(f => f.id == idEdicao);
+        db[index] = dados;
+    } else {
+        db.push(dados);
+    }
 
-nome:document.getElementById("nome").value,
-
-matricula:document.getElementById("matricula").value,
-
-posto:document.getElementById("posto").value,
-
-cargo:document.getElementById("cargo").value,
-
-escala:document.getElementById("escala").value,
-
-dataInicio:document.getElementById("dataInicio").value
-
+    localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
+    limparForm();
+    render();
 }
 
-db.push(dados)
-
-localStorage.setItem("db_quantica_vFinal",JSON.stringify(db))
-
-render()
-
+function editar(id) {
+    let f = db.find(item => item.id === id);
+    document.getElementById("editId").value = f.id;
+    document.getElementById("nome").value = f.nome;
+    document.getElementById("posto").value = f.posto;
+    document.getElementById("cargo").value = f.cargo;
+    document.getElementById("turno").value = f.turno;
+    document.getElementById("escala").value = f.escala;
+    document.getElementById("dataInicio").value = f.dataInicio;
+    document.getElementById("tituloForm").innerText = "Editando Funcionário";
+    document.getElementById("btnCancelar").style.display = "block";
+    window.scrollTo(0,0);
 }
 
-function render(){
-
-let sup=document.getElementById("listaSuperv")
-let res=document.getElementById("listaReservas")
-let adm=document.getElementById("listaAdmin")
-
-sup.innerHTML=""
-res.innerHTML=""
-adm.innerHTML=""
-
-document.getElementById("dataHoje").innerText="HOJE: "+new Date().toLocaleDateString('pt-BR')
-
-let totalServico=0
-
-db.forEach(f=>{
-
-let s=calcularStatus(f)
-
-if(s.txt==="Serviço")totalServico++
-
-let card=
-
-`<div class="card item">
-
-<div>
-
-<b>${f.nome}</b><br>
-<span>${f.posto}</span>
-
-</div>
-
-<div>
-
-${s.txt}
-<div class="status-dot ${s.cl}"></div>
-
-</div>
-
-</div>`
-
-if(f.cargo==="Fiscal"||f.cargo==="Inspetor")sup.innerHTML+=card
-
-if(f.cargo==="Reserva"&&s.txt==="Serviço")res.innerHTML+=card
-
-adm.innerHTML+=card
-
-})
-
-document.getElementById("qtdServico").innerText=totalServico
-
+function excluir(id) {
+    if(confirm("Excluir este funcionário?")) {
+        db = db.filter(f => f.id !== id);
+        localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
+        render();
+    }
 }
 
-function mostrarFolgas(){
-
-let lista=document.getElementById("listaFolgas")
-
-lista.innerHTML="<div class='section-title'>Funcionários de Folga</div>"
-
-db.forEach(f=>{
-
-let s=calcularStatus(f)
-
-if(s.txt==="Folga"){
-
-lista.innerHTML+=`
-
-<div class="card item">
-
-<div>
-
-<b>${f.nome}</b>
-<br>
-<span>${f.posto}</span>
-
-</div>
-
-</div>
-
-`
-
+function limparForm() {
+    document.getElementById("editId").value = "";
+    document.getElementById("nome").value = "";
+    document.getElementById("posto").value = "";
+    document.getElementById("dataInicio").value = "";
+    document.getElementById("tituloForm").innerText = "Cadastro de Funcionário";
+    document.getElementById("btnCancelar").style.display = "none";
 }
 
-})
+function render() {
+    let termPainel = document.getElementById("buscaPainel").value.toLowerCase();
+    let termGestao = document.getElementById("buscaGestao").value.toLowerCase();
+    
+    let sup = document.getElementById("listaSuperv");
+    let res = document.getElementById("listaReservas");
+    let adm = document.getElementById("listaAdmin");
+    
+    sup.innerHTML = ""; res.innerHTML = ""; adm.innerHTML = "";
+    document.getElementById("dataHoje").innerText = "📅 " + new Date().toLocaleDateString('pt-BR');
 
+    let totalServico = 0;
+
+    db.forEach(f => {
+        let s = calcularStatus(f);
+        let turnoCl = f.turno === "Diurno" ? "dia" : "noite";
+        let matchPainel = f.nome.toLowerCase().includes(termPainel) || f.posto.toLowerCase().includes(termPainel);
+        let matchGestao = f.nome.toLowerCase().includes(termGestao) || f.posto.toLowerCase().includes(termGestao);
+
+        if(s.txt === "Serviço") totalServico++;
+
+        // CARD PAINEL
+        if(matchPainel) {
+            let cardPainel = `
+                <div class="card item">
+                    <div>
+                        <b>${f.nome}</b> <span class="badge-turno ${turnoCl}">${f.turno[0]}</span><br>
+                        <small>${f.posto} | ${f.cargo}</small>
+                    </div>
+                    <div class="status-dot ${s.cl}"></div>
+                </div>`;
+
+            if(f.cargo === "Fiscal" || f.cargo === "Inspetor") sup.innerHTML += cardPainel;
+            if(f.cargo === "Reserva" && s.txt === "Serviço") res.innerHTML += cardPainel;
+        }
+
+        // CARD GESTÃO
+        if(matchGestao) {
+            adm.innerHTML += `
+                <div class="card item">
+                    <div><b>${f.nome}</b><br><small>${f.posto} (${f.turno})</small></div>
+                    <div>
+                        <button class="btn-edit" onclick="editar(${f.id})">✏️</button>
+                        <button class="btn-del" onclick="excluir(${f.id})">🗑️</button>
+                    </div>
+                </div>`;
+        }
+    });
+    document.getElementById("qtdServico").innerText = totalServico;
 }
 
-render()
+function exportarDados() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "backup_quantica.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
 
+function mostrarFolgas() {
+    let lista = document.getElementById("listaFolgas");
+    if(lista.innerHTML !== "") { lista.innerHTML = ""; return; }
+    
+    lista.innerHTML = "<div class='section-title'>💤 Folguistas de Hoje</div>";
+    db.forEach(f => {
+        if(calcularStatus(f).txt === "Folga") {
+            lista.innerHTML += `<div class="card"><b>${f.nome}</b> - ${f.posto}</div>`;
+        }
+    });
+}
+
+render();
 </script>
-
 </body>
 </html>
