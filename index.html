@@ -114,7 +114,6 @@
 <script>
 let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
 
-// FUNÇÃO DE IMPORTAÇÃO CORRIGIDA CONTRA ERROS DE 'UNDEFINED'
 function importarArquivo(input) {
     if (!input || !input.files[0]) return;
 
@@ -127,31 +126,31 @@ function importarArquivo(input) {
                 const texto = result.value; 
                 if (!texto || !texto.trim()) return alert("O documento parece estar vazio.");
 
-                // Divide em linhas, limpa espaços e ignora linhas totalmente vazias
-                const linhasRaw = texto.split('\n');
-                const linhas = linhasRaw.map(l => l.trim()).filter(l => l.length > 0);
+                // Blindagem: Filtra apenas linhas que contenham o separador ';' e tenham conteúdo
+                const linhas = texto.split('\n')
+                                    .map(l => l.trim())
+                                    .filter(l => l.includes(';') && l.length > 5);
                 
-                if (linhas.length === 0) return alert("Não foi possível extrair dados válidos.");
+                if (linhas.length === 0) return alert("Nenhum dado válido com ';' foi encontrado.");
 
                 let importados = 0;
                 let dataHoje = new Date().toISOString().split('T')[0];
 
                 linhas.forEach((linha, index) => {
-                    // Ignora cabeçalho
+                    // Ignora o cabeçalho explicitamente
                     if (linha.toUpperCase().includes("NOME;MATRICULA")) return;
 
                     const colunas = linha.split(';');
 
-                    // Verifica se a linha tem pelo menos Nome, Matrícula e Posto
-                    if (colunas && colunas.length >= 3) {
+                    // Verifica se a linha tem as colunas Nome e Posto (pelo menos 3 partes)
+                    if (colunas.length >= 3) {
                         const nomeS = colunas[0] ? colunas[0].trim().toUpperCase() : "";
                         const postoS = colunas[2] ? colunas[2].trim().toUpperCase() : "POSTO NÃO DEFINIDO";
                         const statusS = colunas[3] ? colunas[3].trim().toUpperCase() : "ATIVO";
 
-                        // Só importa se houver nome e for Ativo
                         if (nomeS && statusS === "ATIVO") {
                             const novoFunc = {
-                                id: Date.now() + index,
+                                id: Date.now() + index + Math.random(),
                                 nome: nomeS,
                                 posto: postoS,
                                 cargo: "ASP",
@@ -167,21 +166,20 @@ function importarArquivo(input) {
 
                 if (importados > 0) {
                     localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-                    alert(importados + " funcionários importados com sucesso!");
+                    alert(importados + " funcionários ativos foram importados com sucesso!");
                     render();
                 } else {
-                    alert("Nenhum funcionário com status 'Ativo' foi encontrado no padrão Nome;Matricula;Posto;Status");
+                    alert("Nenhum funcionário 'Ativo' foi processado.");
                 }
             })
             .catch(err => {
                 console.error(err);
-                alert("Erro ao processar o arquivo Word. Verifique o conteúdo.");
+                alert("Erro ao processar o arquivo Word.");
             });
     };
     reader.readAsArrayBuffer(input.files[0]);
 }
 
-// RESTANTE DA LÓGICA DO APP
 function mudarPagina(id, btn) {
     document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
     document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
