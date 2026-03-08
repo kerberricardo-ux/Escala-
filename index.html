@@ -63,7 +63,7 @@
             </div>
             <input type="file" id="fileRestore" accept=".json" style="display:none" onchange="importarBackup(this)">
             
-            <button class="btn-import" onclick="document.getElementById('fileInput').click()" style="margin-top:10px; background: #e8eaf6; border: 1px solid #1a237e; color: #1a237e;">📄 ADICIONAR VIA WORD (.DOCX)</button>
+            <button class="btn-import" onclick="document.getElementById('fileInput').click()" style="margin-top:10px; background: #e8eaf6; border: 1px solid #1a237e; color: #1a237e;">📄 IMPORTAR LISTA WORD (.DOCX)</button>
             <input type="file" id="fileInput" accept=".docx" style="display:none" onchange="importarArquivo(this)">
         </div>
 
@@ -114,9 +114,9 @@
 <script>
 let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
 
-// FUNÇÃO CORRIGIDA PARA EVITAR ERRO DE 'UNDEFINED'
+// FUNÇÃO DE IMPORTAÇÃO CORRIGIDA CONTRA ERROS DE 'UNDEFINED'
 function importarArquivo(input) {
-    if (!input.files[0]) return;
+    if (!input || !input.files[0]) return;
 
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -125,54 +125,63 @@ function importarArquivo(input) {
         mammoth.extractRawText({arrayBuffer: arrayBuffer})
             .then(function(result) {
                 const texto = result.value; 
-                if (!texto || !texto.trim()) {
-                    alert("O documento está vazio ou o formato não é compatível.");
-                    return;
-                }
+                if (!texto || !texto.trim()) return alert("O documento parece estar vazio.");
 
-                const linhas = texto.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                // Divide em linhas, limpa espaços e ignora linhas totalmente vazias
+                const linhasRaw = texto.split('\n');
+                const linhas = linhasRaw.map(l => l.trim()).filter(l => l.length > 0);
                 
-                // Se o mammoth leu mas não gerou linhas úteis
-                if (linhas.length === 0) {
-                    alert("Não foi possível extrair texto deste documento.");
-                    return;
-                }
+                if (linhas.length === 0) return alert("Não foi possível extrair dados válidos.");
 
-                let nomeFinal = "";
-                let postoFinal = "";
+                let importados = 0;
+                let dataHoje = new Date().toISOString().split('T')[0];
 
-                linhas.forEach(linha => {
-                    const lUpper = linha.toUpperCase();
-                    if(lUpper.includes("NOME:")) nomeFinal = linha.split(/nome:/i)[1].trim();
-                    if(lUpper.includes("POSTO:")) postoFinal = linha.split(/posto:/i)[1].trim();
+                linhas.forEach((linha, index) => {
+                    // Ignora cabeçalho
+                    if (linha.toUpperCase().includes("NOME;MATRICULA")) return;
+
+                    const colunas = linha.split(';');
+
+                    // Verifica se a linha tem pelo menos Nome, Matrícula e Posto
+                    if (colunas && colunas.length >= 3) {
+                        const nomeS = colunas[0] ? colunas[0].trim().toUpperCase() : "";
+                        const postoS = colunas[2] ? colunas[2].trim().toUpperCase() : "POSTO NÃO DEFINIDO";
+                        const statusS = colunas[3] ? colunas[3].trim().toUpperCase() : "ATIVO";
+
+                        // Só importa se houver nome e for Ativo
+                        if (nomeS && statusS === "ATIVO") {
+                            const novoFunc = {
+                                id: Date.now() + index,
+                                nome: nomeS,
+                                posto: postoS,
+                                cargo: "ASP",
+                                turno: "Diurno",
+                                escala: "12x36",
+                                dataInicio: dataHoje
+                            };
+                            db.push(novoFunc);
+                            importados++;
+                        }
+                    }
                 });
 
-                // Seguranças para não dar erro de undefined
-                if(!nomeFinal) nomeFinal = linhas[0] || "NOME NÃO IDENTIFICADO";
-                if(!postoFinal) postoFinal = linhas[1] || "POSTO NÃO IDENTIFICADO";
-
-                const novoFuncionario = {
-                    id: Date.now(),
-                    nome: nomeFinal.toUpperCase(),
-                    posto: postoFinal.toUpperCase(),
-                    cargo: "ASP",
-                    turno: "Diurno",
-                    escala: "12x36",
-                    dataInicio: new Date().toISOString().split('T')[0]
-                };
-
-                db.push(novoFuncionario);
-                localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-                
-                alert("Funcionário " + novoFuncionario.nome + " importado e salvo!");
-                render();
+                if (importados > 0) {
+                    localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
+                    alert(importados + " funcionários importados com sucesso!");
+                    render();
+                } else {
+                    alert("Nenhum funcionário com status 'Ativo' foi encontrado no padrão Nome;Matricula;Posto;Status");
+                }
             })
-            .catch(err => alert("Erro ao processar: " + err));
+            .catch(err => {
+                console.error(err);
+                alert("Erro ao processar o arquivo Word. Verifique o conteúdo.");
+            });
     };
     reader.readAsArrayBuffer(input.files[0]);
 }
 
-// RESTANTE DO CÓDIGO MANTIDO IGUAL
+// RESTANTE DA LÓGICA DO APP
 function mudarPagina(id, btn) {
     document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
     document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
