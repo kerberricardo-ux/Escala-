@@ -23,6 +23,7 @@
         input, select, button { width:100%; padding:12px; margin:5px 0; border-radius:8px; border:1px solid #ccc; box-sizing: border-box; }
         .btn-p{ background:var(--primary); color:white; font-weight:bold; cursor:pointer; border:none; }
         .btn-import{ background:#eceff1; color:#455a64; border:1px dashed #455a64; cursor:pointer;}
+        .btn-update{ background:#fff3e0; color:#e65100; border:1px solid #ffb74d; font-weight: bold; cursor:pointer;}
         .btn-edit { background: #fff9c4; border: 1px solid #fbc02d; width: auto; padding: 8px 12px; cursor:pointer; border-radius:5px;}
         .btn-del { background: #ffcdd2; border: 1px solid #e53935; width: auto; padding: 8px 12px; cursor:pointer; border-radius:5px;}
         .badge-turno { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; color: white; margin-left: 5px; }
@@ -66,8 +67,18 @@
             </div>
             <input type="file" id="fileRestore" accept=".json" style="display:none" onchange="importarBackup(this)">
             
-            <button class="btn-import" onclick="document.getElementById('fileInput').click()" style="margin-top:10px; background: #e8eaf6; border: 1px solid #1a237e; color: #1a237e;">📄 IMPORTAR TXT/CSV (NOME;MATRICULA;POSTO;STATUS)</button>
-            <input type="file" id="fileInput" accept=".txt,.csv" style="display:none" onchange="importarArquivoTexto(this)">
+            <div style="display:flex; gap:5px; margin-top:10px;">
+                <button class="btn-import" onclick="document.getElementById('fileInput').click()" style="flex:3; background: #e8eaf6; border: 1px solid #1a237e; color: #1a237e;">
+                    📄 IMPORTAR TXT/CSV
+                </button>
+                <button class="btn-update" onclick="acionarAtualizacaoTotal()" style="flex:1;">
+                    🔄 ATUALIZAR TUDO
+                </button>
+            </div>
+            <small style="display:block; color:#666; margin-top:5px; font-size:10px">Formato: NOME;MATRICULA;POSTO;STATUS</small>
+            
+            <input type="file" id="fileInput" accept=".txt,.csv" style="display:none" onchange="importarArquivoTexto(this, false)">
+            <input type="file" id="fileInputUpdate" accept=".txt,.csv" style="display:none" onchange="importarArquivoTexto(this, true)">
         </div>
 
         <div class="card">
@@ -117,8 +128,15 @@
 <script>
 let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
 
+// --- FUNÇÃO PARA ACIONAR ATUALIZAÇÃO ---
+function acionarAtualizacaoTotal() {
+    if(confirm("ATENÇÃO: Isso apagará TODOS os funcionários atuais e instalará apenas os da nova lista. Deseja continuar?")) {
+        document.getElementById('fileInputUpdate').click();
+    }
+}
+
 // --- FUNÇÃO DE IMPORTAÇÃO DE TEXTO ---
-function importarArquivoTexto(input) {
+function importarArquivoTexto(input, limparTudo) {
     if (!input || !input.files[0]) return;
 
     const file = input.files[0];
@@ -129,7 +147,7 @@ function importarArquivoTexto(input) {
         if (!texto || !texto.trim()) return alert("O arquivo está vazio.");
 
         const linhas = texto.split(/\r?\n/).filter(l => l.trim().length > 0);
-        let importados = 0;
+        let novosRegistros = [];
         let dataHoje = new Date().toISOString().split('T')[0];
 
         linhas.forEach((linha, index) => {
@@ -143,7 +161,7 @@ function importarArquivoTexto(input) {
                 const statusS = colunas[3] ? colunas[3].trim().toUpperCase() : "ATIVO";
 
                 if (nomeS && statusS === "ATIVO") {
-                    db.push({
+                    novosRegistros.push({
                         id: Date.now() + index + Math.random(),
                         nome: nomeS,
                         posto: postoS,
@@ -152,18 +170,24 @@ function importarArquivoTexto(input) {
                         escala: "12x36",
                         dataInicio: dataHoje
                     });
-                    importados++;
                 }
             }
         });
 
-        if (importados > 0) {
+        if (novosRegistros.length > 0) {
+            if (limparTudo) {
+                db = novosRegistros; // Substitui tudo
+            } else {
+                db = db.concat(novosRegistros); // Apenas adiciona
+            }
+            
             localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-            alert(importados + " funcionários importados com sucesso!");
+            alert(novosRegistros.length + " funcionários instalados com sucesso!");
             render();
         } else {
             alert("Nenhum dado válido encontrado. O formato deve ser: NOME;MATRICULA;POSTO;STATUS");
         }
+        input.value = ""; // Limpa o input para permitir re-importar o mesmo arquivo se necessário
     };
     reader.readAsText(file, "UTF-8");
 }
