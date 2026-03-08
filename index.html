@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quântica - Gestão Operacional v3.5</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.8/mammoth.browser.min.js"></script>
     <style>
         :root{ --primary:#1a237e; --secondary:#0d47a1; --success:#2e7d32; --danger:#c62828; --bg:#f5f5f5; --white:#ffffff; }
         body{ font-family:'Segoe UI',sans-serif; margin:0; background:var(--bg); padding-bottom:90px; }
@@ -63,8 +62,9 @@
             </div>
             <input type="file" id="fileRestore" accept=".json" style="display:none" onchange="importarBackup(this)">
             
-            <button class="btn-import" onclick="document.getElementById('fileInput').click()" style="margin-top:10px; background: #e8eaf6; border: 1px solid #1a237e; color: #1a237e;">📄 IMPORTAR LISTA WORD (.DOCX)</button>
-            <input type="file" id="fileInput" accept=".docx" style="display:none" onchange="importarArquivo(this)">
+            <button class="btn-import" onclick="document.getElementById('fileInput').click()" style="margin-top:10px; background: #e8eaf6; border: 1px solid #1a237e; color: #1a237e;">📄 IMPORTAR LISTA TEXTO (.TXT / .CSV)</button>
+            <input type="file" id="fileInput" accept=".txt,.csv" style="display:none" onchange="importarArquivoTexto(this)">
+            <p style="font-size: 0.7rem; color: #666; margin-top: 5px;">Formato: NOME;MATRICULA;POSTO;STATUS</p>
         </div>
 
         <div class="card">
@@ -114,70 +114,62 @@
 <script>
 let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
 
-function importarArquivo(input) {
+// NOVA FUNÇÃO PARA IMPORTAR ARQUIVO DE TEXTO
+function importarArquivoTexto(input) {
     if (!input || !input.files[0]) return;
 
+    const file = input.files[0];
     const reader = new FileReader();
+
     reader.onload = function(e) {
-        const arrayBuffer = e.target.result;
+        const texto = e.target.result;
+        if (!texto || !texto.trim()) return alert("O arquivo está vazio.");
 
-        mammoth.extractRawText({arrayBuffer: arrayBuffer})
-            .then(function(result) {
-                const texto = result.value; 
-                if (!texto || !texto.trim()) return alert("O documento parece estar vazio.");
+        // Divide por linhas e remove vazias
+        const linhas = texto.split(/\r?\n/).filter(l => l.trim().length > 0);
+        
+        let importados = 0;
+        let dataHoje = new Date().toISOString().split('T')[0];
 
-                // Blindagem: Filtra apenas linhas que contenham o separador ';' e tenham conteúdo
-                const linhas = texto.split('\n')
-                                    .map(l => l.trim())
-                                    .filter(l => l.includes(';') && l.length > 5);
-                
-                if (linhas.length === 0) return alert("Nenhum dado válido com ';' foi encontrado.");
+        linhas.forEach((linha, index) => {
+            // Ignora cabeçalho se houver
+            if (linha.toUpperCase().includes("NOME;MATRICULA")) return;
 
-                let importados = 0;
-                let dataHoje = new Date().toISOString().split('T')[0];
+            const colunas = linha.split(';');
 
-                linhas.forEach((linha, index) => {
-                    // Ignora o cabeçalho explicitamente
-                    if (linha.toUpperCase().includes("NOME;MATRICULA")) return;
+            // Verifica se a linha tem as colunas Nome, Matrícula, Posto, Status (mínimo 3 pra funcionar)
+            if (colunas.length >= 3) {
+                const nomeS = colunas[0] ? colunas[0].trim().toUpperCase() : "";
+                const postoS = colunas[2] ? colunas[2].trim().toUpperCase() : "POSTO NÃO DEFINIDO";
+                const statusS = colunas[3] ? colunas[3].trim().toUpperCase() : "ATIVO";
 
-                    const colunas = linha.split(';');
-
-                    // Verifica se a linha tem as colunas Nome e Posto (pelo menos 3 partes)
-                    if (colunas.length >= 3) {
-                        const nomeS = colunas[0] ? colunas[0].trim().toUpperCase() : "";
-                        const postoS = colunas[2] ? colunas[2].trim().toUpperCase() : "POSTO NÃO DEFINIDO";
-                        const statusS = colunas[3] ? colunas[3].trim().toUpperCase() : "ATIVO";
-
-                        if (nomeS && statusS === "ATIVO") {
-                            const novoFunc = {
-                                id: Date.now() + index + Math.random(),
-                                nome: nomeS,
-                                posto: postoS,
-                                cargo: "ASP",
-                                turno: "Diurno",
-                                escala: "12x36",
-                                dataInicio: dataHoje
-                            };
-                            db.push(novoFunc);
-                            importados++;
-                        }
-                    }
-                });
-
-                if (importados > 0) {
-                    localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-                    alert(importados + " funcionários ativos foram importados com sucesso!");
-                    render();
-                } else {
-                    alert("Nenhum funcionário 'Ativo' foi processado.");
+                // Só importa se o nome existir e o status for ATIVO
+                if (nomeS && statusS === "ATIVO") {
+                    const novoFunc = {
+                        id: Date.now() + index + Math.random(),
+                        nome: nomeS,
+                        posto: postoS,
+                        cargo: "ASP",
+                        turno: "Diurno",
+                        escala: "12x36",
+                        dataInicio: dataHoje
+                    };
+                    db.push(novoFunc);
+                    importados++;
                 }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("Erro ao processar o arquivo Word.");
-            });
+            }
+        });
+
+        if (importados > 0) {
+            localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
+            alert(importados + " funcionários ativos importados com sucesso!");
+            render();
+        } else {
+            alert("Nenhum dado válido encontrado. Use o formato: NOME;MATRICULA;POSTO;STATUS");
+        }
     };
-    reader.readAsArrayBuffer(input.files[0]);
+
+    reader.readAsText(file, "UTF-8");
 }
 
 function mudarPagina(id, btn) {
@@ -210,7 +202,7 @@ function calcularStatus(f) {
 function salvar() {
     let idEdicao = document.getElementById("editId").value;
     let dados = {
-        id: idEdicao ? parseInt(idEdicao) : Date.now(),
+        id: idEdicao ? parseFloat(idEdicao) : Date.now(),
         nome: document.getElementById("nome").value.toUpperCase(),
         posto: document.getElementById("posto").value.toUpperCase(),
         cargo: document.getElementById("cargo").value,
