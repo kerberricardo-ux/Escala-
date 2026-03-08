@@ -56,19 +56,19 @@
 
     <div id="gestao" class="page">
         <div class="card">
-            <h3>Backup e Dados</h3>
+            <h3>Backup e Importação</h3>
             <div style="display:flex; gap:5px">
                 <button class="btn-import" onclick="exportarDados()" style="background:#e3f2fd; border-style:solid">💾 Backup</button>
                 <button class="btn-import" onclick="document.getElementById('fileRestore').click()" style="background:#f1f8e9; border-style:solid">📂 Restaurar</button>
             </div>
             <input type="file" id="fileRestore" accept=".json" style="display:none" onchange="importarBackup(this)">
             
-            <button class="btn-import" onclick="document.getElementById('fileInput').click()" style="margin-top:10px">📄 Importar Dados do Word (.docx)</button>
+            <button class="btn-import" onclick="document.getElementById('fileInput').click()" style="margin-top:10px; background: #e8eaf6; border: 1px solid #1a237e; color: #1a237e;">📄 ADICIONAR FUNCIONÁRIO VIA WORD (.DOCX)</button>
             <input type="file" id="fileInput" accept=".docx" style="display:none" onchange="importarArquivo(this)">
         </div>
 
         <div class="card">
-            <h3 id="tituloForm">Cadastrar / Alterar</h3>
+            <h3 id="tituloForm">Cadastro Manual</h3>
             <input type="hidden" id="editId">
             <input type="text" id="nome" placeholder="Nome do Funcionário">
             <input type="text" id="posto" placeholder="Nome do Posto">
@@ -96,11 +96,11 @@
             </select>
 
             <input type="date" id="dataInicio">
-            <button class="btn-p" onclick="salvar()">Salvar Informações</button>
-            <button id="btnCancelar" style="display:none; background:#eee; border:none" onclick="limparForm()">Cancelar Edição</button>
+            <button class="btn-p" onclick="salvar()">Salvar Alterações</button>
+            <button id="btnCancelar" style="display:none; background:#eee; border:none" onclick="limparForm()">Cancelar</button>
         </div>
 
-        <div class="section-title">Lista para Alteração / Exclusão</div>
+        <div class="section-title">Lista Geral</div>
         <input type="text" id="buscaGestao" placeholder="🔍 Filtrar lista..." onkeyup="render()" style="margin-bottom:10px">
         <div id="listaAdmin"></div>
     </div>
@@ -114,7 +114,7 @@
 <script>
 let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
 
-// FUNÇÃO DE IMPORTAÇÃO DOCX COM INTRODUÇÃO AUTOMÁTICA
+// IMPORTAÇÃO E SALVAMENTO AUTOMÁTICO
 function importarArquivo(input) {
     if (!input.files[0]) return;
 
@@ -127,31 +127,38 @@ function importarArquivo(input) {
                 const texto = result.value; 
                 if (!texto.trim()) return alert("O documento está vazio!");
 
-                // Divide em linhas e limpa espaços
                 const linhas = texto.split('\n').map(l => l.trim()).filter(l => l.length > 0);
                 
                 let nomeFinal = "";
                 let postoFinal = "";
 
-                // Busca por palavras-chave
                 linhas.forEach(linha => {
                     const lUpper = linha.toUpperCase();
                     if(lUpper.includes("NOME:")) nomeFinal = linha.split(/nome:/i)[1].trim();
                     if(lUpper.includes("POSTO:")) postoFinal = linha.split(/posto:/i)[1].trim();
                 });
 
-                // Se não achou palavras-chave, usa as primeiras linhas
                 if(!nomeFinal && linhas.length > 0) nomeFinal = linhas[0];
                 if(!postoFinal && linhas.length > 1) postoFinal = linhas[1];
 
-                // Introduz nos campos do formulário
-                document.getElementById("nome").value = nomeFinal.toUpperCase();
-                document.getElementById("posto").value = postoFinal.toUpperCase();
+                // CRIA O OBJETO E SALVA DIRETO NO DB
+                const novoFuncionario = {
+                    id: Date.now(),
+                    nome: nomeFinal.toUpperCase(),
+                    posto: postoFinal.toUpperCase(),
+                    cargo: "ASP", // Valor padrão ao importar
+                    turno: "Diurno", // Valor padrão ao importar
+                    escala: "12x36", // Valor padrão ao importar
+                    dataInicio: new Date().toISOString().split('T')[0] // Data de hoje como padrão
+                };
 
-                alert("Dados importados com sucesso! Revise e salve.");
-                console.log("Texto completo do Word:", texto);
+                db.push(novoFuncionario);
+                localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
+                
+                alert("Funcionário " + novoFuncionario.nome + " importado e salvo com sucesso!");
+                render();
             })
-            .catch(err => alert("Erro ao ler Word: " + err));
+            .catch(err => alert("Erro ao importar: " + err));
     };
     reader.readAsArrayBuffer(input.files[0]);
 }
@@ -233,7 +240,7 @@ function limparForm() {
     document.getElementById("nome").value = "";
     document.getElementById("posto").value = "";
     document.getElementById("dataInicio").value = "";
-    document.getElementById("tituloForm").innerText = "Cadastrar / Alterar";
+    document.getElementById("tituloForm").innerText = "Cadastro Manual";
     document.getElementById("btnCancelar").style.display = "none";
 }
 
