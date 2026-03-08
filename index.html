@@ -46,7 +46,7 @@
             </span>
         </div>
 
-        <button onclick="gerarRelatorioPDF()" style="background:#1a237e; color:white; border:none; padding:12px; border-radius:8px; margin-bottom:15px; cursor:pointer; font-weight:bold; width:100%">📄 GERAR RELATÓRIO PDF (EFETIVO HOJE)</button>
+        <button onclick="gerarRelatorioPDF()" class="btn-p">📄 GERAR RELATÓRIO PDF (EFETIVO HOJE)</button>
 
         <div class="section-title">👮 Supervisão</div>
         <div id="listaSuperv"></div>
@@ -62,7 +62,8 @@
                 <button class="btn-import" onclick="document.getElementById('fileRestore').click()" style="background:#f1f8e9; border-style:solid">📂 Restaurar</button>
             </div>
             <input type="file" id="fileRestore" accept=".json" style="display:none" onchange="importarBackup(this)">
-            <button class="btn-import" onclick="document.getElementById('fileInput').click()" style="margin-top:10px">📄 Extrair Texto Word (.docx)</button>
+            
+            <button class="btn-import" onclick="document.getElementById('fileInput').click()" style="margin-top:10px">📄 Importar Dados do Word (.docx)</button>
             <input type="file" id="fileInput" accept=".docx" style="display:none" onchange="importarArquivo(this)">
         </div>
 
@@ -112,6 +113,40 @@
 
 <script>
 let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
+
+// FUNÇÃO DE IMPORTAÇÃO DOCX CORRIGIDA
+function importarArquivo(input) {
+    if (!input.files[0]) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const arrayBuffer = e.target.result;
+
+        mammoth.extractRawText({arrayBuffer: arrayBuffer})
+            .then(function(result) {
+                const texto = result.value;
+                if (!texto.trim()) return alert("Documento sem texto!");
+
+                // Lógica de extração simples: Procura por "Nome:" e "Posto:" no arquivo
+                const linhas = texto.split('\n');
+                linhas.forEach(linha => {
+                    const l = linha.toUpperCase();
+                    if(l.includes("NOME:")) document.getElementById("nome").value = l.replace("NOME:","").trim();
+                    if(l.includes("POSTO:")) document.getElementById("posto").value = l.replace("POSTO:","").trim();
+                });
+
+                // Se não encontrar tags, joga a primeira linha no Nome
+                if(!document.getElementById("nome").value) {
+                    document.getElementById("nome").value = linhas[0].trim().toUpperCase();
+                }
+
+                alert("Dados extraídos do Word! Revise o formulário e clique em Salvar.");
+                console.log("Texto extraído:", texto);
+            })
+            .catch(err => alert("Erro ao ler o arquivo Word: " + err));
+    };
+    reader.readAsArrayBuffer(input.files[0]);
+}
 
 function mudarPagina(id, btn) {
     document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
@@ -189,11 +224,11 @@ function limparForm() {
     document.getElementById("editId").value = "";
     document.getElementById("nome").value = "";
     document.getElementById("posto").value = "";
+    document.getElementById("dataInicio").value = "";
     document.getElementById("tituloForm").innerText = "Cadastrar / Alterar";
     document.getElementById("btnCancelar").style.display = "none";
 }
 
-// BACKUP E EXPORTAÇÃO
 function exportarDados() {
     const dados = JSON.stringify(db, null, 2);
     const blob = new Blob([dados], {type: "application/json"});
@@ -217,17 +252,6 @@ function importarBackup(input) {
         } catch(err) { alert("Arquivo inválido."); }
     };
     reader.readAsText(input.files[0]);
-}
-
-function importarArquivo(input) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        mammoth.extractRawText({arrayBuffer: e.target.result}).then(function(result) {
-            alert("Texto extraído! Verifique o console (F12).");
-            console.log(result.value);
-        });
-    };
-    reader.readAsArrayBuffer(input.files[0]);
 }
 
 function gerarRelatorioPDF() {
