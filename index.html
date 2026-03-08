@@ -38,11 +38,11 @@
 <div class="container">
     <div id="painel" class="page active">
         <div id="dataHoje" style="text-align:center; margin-bottom:10px; font-weight:bold; color:#666"></div>
-        <input type="text" id="buscaPainel" placeholder="🔍 Buscar nome ou posto..." onkeyup="render()" style="margin-bottom:15px">
+        <input type="text" id="buscaPainel" placeholder="🔍 Buscar fiscal ou reserva..." onkeyup="render()" style="margin-bottom:15px">
 
         <div style="text-align:center; margin-bottom:15px">
             <span style="background:#e8f5e9; padding:8px 15px; border-radius:20px; color:var(--success); font-weight:bold">
-                👮 Em Serviço Hoje: <span id="qtdServico">0</span>
+                👮 Total em Serviço (Geral): <span id="qtdServico">0</span>
             </span>
         </div>
 
@@ -53,10 +53,8 @@
         
         <div class="section-title">🚗 Reservas (Em Serviço)</div>
         <div id="listaReservas"></div>
-
-        <div class="section-title">📑 Outros Postos / ASP (Em Serviço)</div>
-        <div id="listaASPServico"></div>
-    </div>
+        
+        </div>
 
     <div id="gestao" class="page">
         <div class="card">
@@ -128,44 +126,42 @@
 <script>
 let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
 
-// --- FUNÇÃO PARA ACIONAR ATUALIZAÇÃO ---
+// --- FUNÇÃO PARA ATUALIZAÇÃO TOTAL ---
 function acionarAtualizacaoTotal() {
     if(confirm("ATENÇÃO: Isso apagará TODOS os funcionários atuais e instalará apenas os da nova lista. Deseja continuar?")) {
         document.getElementById('fileInputUpdate').click();
     }
 }
 
-// --- FUNÇÃO DE IMPORTAÇÃO DE TEXTO ---
+// --- IMPORTAÇÃO DE TEXTO ---
 function importarArquivoTexto(input, limparTudo) {
     if (!input || !input.files[0]) return;
-
-    const file = input.files[0];
     const reader = new FileReader();
-
     reader.onload = function(e) {
         const texto = e.target.result;
-        if (!texto || !texto.trim()) return alert("O arquivo está vazio.");
-
         const linhas = texto.split(/\r?\n/).filter(l => l.trim().length > 0);
         let novosRegistros = [];
         let dataHoje = new Date().toISOString().split('T')[0];
 
         linhas.forEach((linha, index) => {
             if (linha.toUpperCase().includes("NOME;MATRICULA")) return;
-
             const colunas = linha.split(';');
-
             if (colunas.length >= 3) {
-                const nomeS = colunas[0] ? colunas[0].trim().toUpperCase() : "";
-                const postoS = colunas[2] ? colunas[2].trim().toUpperCase() : "POSTO NÃO DEFINIDO";
-                const statusS = colunas[3] ? colunas[3].trim().toUpperCase() : "ATIVO";
+                const nomeS = colunas[0]?.trim().toUpperCase();
+                const postoS = colunas[2]?.trim().toUpperCase();
+                const statusS = colunas[3]?.trim().toUpperCase() || "ATIVO";
 
                 if (nomeS && statusS === "ATIVO") {
+                    [span_1](start_span)[span_2](start_span)[span_3](start_span)[span_4](start_span)// Lógica para detectar cargo pelo posto no arquivo[span_1](end_span)[span_2](end_span)[span_3](end_span)[span_4](end_span)
+                    let cargoAuto = "ASP";
+                    if(postoS.includes("RESERVA")) cargoAuto = "Reserva";
+                    if(postoS.includes("FISCAL") || postoS.includes("INSPETOR") || postoS.includes("OPERACIONAL")) cargoAuto = "Fiscal";
+
                     novosRegistros.push({
                         id: Date.now() + index + Math.random(),
                         nome: nomeS,
                         posto: postoS,
-                        cargo: "ASP", 
+                        cargo: cargoAuto, 
                         turno: "Diurno",
                         escala: "12x36",
                         dataInicio: dataHoje
@@ -175,24 +171,17 @@ function importarArquivoTexto(input, limparTudo) {
         });
 
         if (novosRegistros.length > 0) {
-            if (limparTudo) {
-                db = novosRegistros; // Substitui tudo
-            } else {
-                db = db.concat(novosRegistros); // Apenas adiciona
-            }
-            
+            db = limparTudo ? novosRegistros : db.concat(novosRegistros);
             localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-            alert(novosRegistros.length + " funcionários instalados com sucesso!");
+            alert(novosRegistros.length + " registros processados!");
             render();
-        } else {
-            alert("Nenhum dado válido encontrado. O formato deve ser: NOME;MATRICULA;POSTO;STATUS");
         }
-        input.value = ""; // Limpa o input para permitir re-importar o mesmo arquivo se necessário
+        input.value = "";
     };
-    reader.readAsText(file, "UTF-8");
+    reader.readAsText(input.files[0], "UTF-8");
 }
 
-// --- CONTROLE DE NAVEGAÇÃO ---
+// --- SISTEMA ---
 function mudarPagina(id, btn) {
     document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
     document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
@@ -201,13 +190,11 @@ function mudarPagina(id, btn) {
     render();
 }
 
-// --- LÓGICA DE ESCALA ---
 function calcularStatus(f) {
     let hoje = new Date(); hoje.setHours(0,0,0,0);
     let inicio = new Date(f.dataInicio);
     let diff = Math.floor((hoje - inicio) / 86400000);
     if(diff < 0) return {txt: "Folga", cl: "st-folga"};
-
     let emServico = false;
     switch(f.escala) {
         case "12x36": emServico = (diff % 2 === 0); break;
@@ -221,7 +208,6 @@ function calcularStatus(f) {
     return emServico ? {txt: "Serviço", cl: "st-servico"} : {txt: "Folga", cl: "st-folga"};
 }
 
-// --- CRUD MANUAL ---
 function salvar() {
     let idEdicao = document.getElementById("editId").value;
     let dados = {
@@ -234,7 +220,6 @@ function salvar() {
         dataInicio: document.getElementById("dataInicio").value
     };
     if(!dados.nome || !dados.dataInicio) return alert("Preencha Nome e Data!");
-    
     if(idEdicao) {
         let index = db.findIndex(f => f.id == idEdicao);
         db[index] = dados;
@@ -261,7 +246,7 @@ function editar(id) {
 }
 
 function excluir(id) {
-    if(confirm("Deseja apagar este registro permanentemente?")) {
+    if(confirm("Apagar registro?")) {
         db = db.filter(f => f.id !== id);
         localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
         render();
@@ -277,33 +262,24 @@ function limparForm() {
     document.getElementById("btnCancelar").style.display = "none";
 }
 
-// --- BACKUP ---
 function exportarDados() {
-    const dados = JSON.stringify(db, null, 2);
-    const blob = new Blob([dados], {type: "application/json"});
-    const url = URL.createObjectURL(blob);
+    const blob = new Blob([JSON.stringify(db, null, 2)], {type: "application/json"});
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `backup_quantica_${new Date().toISOString().slice(0,10)}.json`;
+    a.href = URL.createObjectURL(blob);
+    a.download = `backup_quantica.json`;
     a.click();
 }
 
 function importarBackup(input) {
     const reader = new FileReader();
     reader.onload = function(e) {
-        try {
-            const novosDados = JSON.parse(e.target.result);
-            if(confirm("Deseja carregar este backup? Isso substituirá a lista atual.")) {
-                db = novosDados;
-                localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-                render();
-            }
-        } catch(err) { alert("Arquivo de backup inválido."); }
+        db = JSON.parse(e.target.result);
+        localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
+        render();
     };
     reader.readAsText(input.files[0]);
 }
 
-// --- RELATÓRIO PDF ---
 function gerarRelatorioPDF() {
     const hoje = new Date().toLocaleDateString('pt-BR');
     const emServico = db.filter(f => calcularStatus(f).txt === "Serviço");
@@ -316,17 +292,17 @@ function gerarRelatorioPDF() {
         th{background:#f5f5f5}
     </style></head><body>
         <h1>Relatório Operacional - ${hoje}</h1>
-        <h2>Supervisão</h2>
-        <table><tr><th>Nome</th><th>Posto</th><th>Turno</th></tr>
-        ${emServico.filter(f=>f.cargo==='Fiscal'||f.cargo==='Inspetor').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td><td>${f.turno}</td></tr>`).join('')}
+        <h2>Supervisão/Fiscais</h2>
+        <table><tr><th>Nome</th><th>Posto</th></tr>
+        ${emServico.filter(f=>f.cargo==='Fiscal'||f.cargo==='Inspetor').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td></tr>`).join('')}
         </table>
         <h2>Reservas</h2>
-        <table><tr><th>Nome</th><th>Posto</th><th>Turno</th></tr>
-        ${emServico.filter(f=>f.cargo==='Reserva').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td><td>${f.turno}</td></tr>`).join('')}
+        <table><tr><th>Nome</th><th>Posto</th></tr>
+        ${emServico.filter(f=>f.cargo==='Reserva').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td></tr>`).join('')}
         </table>
-        <h2>Efetivo Geral (ASP)</h2>
-        <table><tr><th>Nome</th><th>Posto</th><th>Turno</th></tr>
-        ${emServico.filter(f=>f.cargo==='ASP').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td><td>${f.turno}</td></tr>`).join('')}
+        <h2>Efetivo nos Postos (ASP)</h2>
+        <table><tr><th>Nome</th><th>Posto</th></tr>
+        ${emServico.filter(f=>f.cargo==='ASP').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td></tr>`).join('')}
         </table>
     </body></html>`;
     win.document.write(html);
@@ -334,17 +310,14 @@ function gerarRelatorioPDF() {
     setTimeout(() => { win.print(); win.close(); }, 500);
 }
 
-// --- RENDERIZAÇÃO PRINCIPAL ---
 function render() {
     let tPainel = document.getElementById("buscaPainel").value.toLowerCase();
     let tGestao = document.getElementById("buscaGestao").value.toLowerCase();
-    
     let sup = document.getElementById("listaSuperv");
     let res = document.getElementById("listaReservas");
-    let asps = document.getElementById("listaASPServico");
     let adm = document.getElementById("listaAdmin");
     
-    sup.innerHTML = ""; res.innerHTML = ""; asps.innerHTML = ""; adm.innerHTML = "";
+    sup.innerHTML = ""; res.innerHTML = ""; adm.innerHTML = "";
     document.getElementById("dataHoje").innerText = "HOJE: " + new Date().toLocaleDateString('pt-BR');
     
     let totalServico = 0;
@@ -352,11 +325,9 @@ function render() {
     db.forEach(f => {
         let statusObj = calcularStatus(f);
         let tCl = f.turno === "Diurno" ? "dia" : "noite";
-        
-        // Contagem global de serviço
         if(statusObj.txt === "Serviço") totalServico++;
 
-        // Render para Painel (Somente quem está em serviço e bate com a busca)
+        [span_5](start_span)// Painel: Apenas Fiscais/Inspetores e Reservas de serviço[span_5](end_span)
         if(statusObj.txt === "Serviço" && (f.nome.toLowerCase().includes(tPainel) || f.posto.toLowerCase().includes(tPainel))) {
             let card = `<div class="card item">
                 <div><b>${f.nome}</b> <span class="badge-turno ${tCl}">${f.turno[0]}</span><br><small>${f.posto}</small></div>
@@ -365,14 +336,14 @@ function render() {
             
             if(f.cargo === "Fiscal" || f.cargo === "Inspetor") sup.innerHTML += card;
             else if(f.cargo === "Reserva") res.innerHTML += card;
-            else asps.innerHTML += card;
+            [span_6](start_span)// Se for ASP, o card não é adicionado a nenhuma lista do Painel conforme solicitado[span_6](end_span)
         }
 
-        // Render para Gestão (Todos, com busca)
+        [span_7](start_span)// Gestão: Todos aparecem para edição[span_7](end_span)
         if(f.nome.toLowerCase().includes(tGestao) || f.posto.toLowerCase().includes(tGestao)) {
             let sGeral = calcularStatus(f);
             adm.innerHTML += `<div class="card item">
-                <div><b>${f.nome}</b><br><small>${f.posto} | ${f.cargo} | ${f.escala} (${sGeral.txt})</small></div>
+                <div><b>${f.nome}</b><br><small>${f.posto} | ${f.cargo} (${sGeral.txt})</small></div>
                 <div style="display:flex; gap:5px">
                     <button class="btn-edit" onclick="editar(${f.id})">✏️</button>
                     <button class="btn-del" onclick="excluir(${f.id})">🗑️</button>
@@ -382,8 +353,6 @@ function render() {
     });
     document.getElementById("qtdServico").innerText = totalServico;
 }
-
-// Inicializar
 render();
 </script>
 </body>
