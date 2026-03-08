@@ -53,27 +53,25 @@
         
         <div class="section-title">🚗 Reservas (Em Serviço)</div>
         <div id="listaReservas"></div>
-        
-        </div>
+    </div>
 
     <div id="gestao" class="page">
         <div class="card">
             <h3>Importação e Backup</h3>
             <div style="display:flex; gap:5px">
-                <button class="btn-import" onclick="exportarDados()" style="background:#e3f2fd; border-style:solid">💾 Exportar Backup</button>
-                <button class="btn-import" onclick="document.getElementById('fileRestore').click()" style="background:#f1f8e9; border-style:solid">📂 Restaurar Backup</button>
+                <button class="btn-import" onclick="exportarDados()" style="background:#e3f2fd; border-style:solid">💾 Backup JSON</button>
+                <button class="btn-import" onclick="document.getElementById('fileRestore').click()" style="background:#f1f8e9; border-style:solid">📂 Restaurar</button>
             </div>
             <input type="file" id="fileRestore" accept=".json" style="display:none" onchange="importarBackup(this)">
             
             <div style="display:flex; gap:5px; margin-top:10px;">
                 <button class="btn-import" onclick="document.getElementById('fileInput').click()" style="flex:3; background: #e8eaf6; border: 1px solid #1a237e; color: #1a237e;">
-                    📄 IMPORTAR TXT/CSV
+                    📄 ADICIONAR TXT
                 </button>
-                <button class="btn-update" onclick="acionarAtualizacaoTotal()" style="flex:1;">
+                <button class="btn-update" onclick="acionarAtualizacaoTotal()" style="flex:2;">
                     🔄 ATUALIZAR TUDO
                 </button>
             </div>
-            <small style="display:block; color:#666; margin-top:5px; font-size:10px">Formato: NOME;MATRICULA;POSTO;STATUS</small>
             
             <input type="file" id="fileInput" accept=".txt,.csv" style="display:none" onchange="importarArquivoTexto(this, false)">
             <input type="file" id="fileInputUpdate" accept=".txt,.csv" style="display:none" onchange="importarArquivoTexto(this, true)">
@@ -107,13 +105,13 @@
                 <option value="6x1">6x1</option>
             </select>
 
-            <input type="date" id="dataInicio" title="Data de Início para cálculo de escala">
+            <input type="date" id="dataInicio" title="Data de Início">
             <button class="btn-p" onclick="salvar()">Salvar Registro</button>
-            <button id="btnCancelar" style="display:none; background:#eee; border:none; margin-top:5px" onclick="limparForm()">Cancelar Edição</button>
+            <button id="btnCancelar" style="display:none; background:#eee; border:none; margin-top:5px" onclick="limparForm()">Cancelar</button>
         </div>
 
         <div class="section-title">Efetivo Cadastrado (Geral)</div>
-        <input type="text" id="buscaGestao" placeholder="🔍 Filtrar por nome ou posto..." onkeyup="render()" style="margin-bottom:10px">
+        <input type="text" id="buscaGestao" placeholder="🔍 Filtrar lista..." onkeyup="render()" style="margin-bottom:10px">
         <div id="listaAdmin"></div>
     </div>
 </div>
@@ -126,14 +124,12 @@
 <script>
 let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
 
-// --- FUNÇÃO PARA ATUALIZAÇÃO TOTAL ---
 function acionarAtualizacaoTotal() {
-    if(confirm("ATENÇÃO: Isso apagará TODOS os funcionários atuais e instalará apenas os da nova lista. Deseja continuar?")) {
+    if(confirm("Isso apagará a lista atual e instalará apenas os novos dados. Continuar?")) {
         document.getElementById('fileInputUpdate').click();
     }
 }
 
-// --- IMPORTAÇÃO DE TEXTO ---
 function importarArquivoTexto(input, limparTudo) {
     if (!input || !input.files[0]) return;
     const reader = new FileReader();
@@ -152,7 +148,6 @@ function importarArquivoTexto(input, limparTudo) {
                 const statusS = colunas[3]?.trim().toUpperCase() || "ATIVO";
 
                 if (nomeS && statusS === "ATIVO") {
-                    [span_1](start_span)[span_2](start_span)[span_3](start_span)[span_4](start_span)// Lógica para detectar cargo pelo posto no arquivo[span_1](end_span)[span_2](end_span)[span_3](end_span)[span_4](end_span)
                     let cargoAuto = "ASP";
                     if(postoS.includes("RESERVA")) cargoAuto = "Reserva";
                     if(postoS.includes("FISCAL") || postoS.includes("INSPETOR") || postoS.includes("OPERACIONAL")) cargoAuto = "Fiscal";
@@ -173,7 +168,7 @@ function importarArquivoTexto(input, limparTudo) {
         if (novosRegistros.length > 0) {
             db = limparTudo ? novosRegistros : db.concat(novosRegistros);
             localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-            alert(novosRegistros.length + " registros processados!");
+            alert(novosRegistros.length + " funcionários instalados!");
             render();
         }
         input.value = "";
@@ -181,7 +176,6 @@ function importarArquivoTexto(input, limparTudo) {
     reader.readAsText(input.files[0], "UTF-8");
 }
 
-// --- SISTEMA ---
 function mudarPagina(id, btn) {
     document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
     document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
@@ -289,7 +283,6 @@ function gerarRelatorioPDF() {
         h1{color:#1a237e; border-bottom:2px solid #1a237e; text-align:center}
         table{width:100%; border-collapse:collapse; margin-bottom:20px}
         th,td{border:1px solid #ddd; padding:8px; text-align:left}
-        th{background:#f5f5f5}
     </style></head><body>
         <h1>Relatório Operacional - ${hoje}</h1>
         <h2>Supervisão/Fiscais</h2>
@@ -300,7 +293,7 @@ function gerarRelatorioPDF() {
         <table><tr><th>Nome</th><th>Posto</th></tr>
         ${emServico.filter(f=>f.cargo==='Reserva').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td></tr>`).join('')}
         </table>
-        <h2>Efetivo nos Postos (ASP)</h2>
+        <h2>Efetivo Geral (ASP)</h2>
         <table><tr><th>Nome</th><th>Posto</th></tr>
         ${emServico.filter(f=>f.cargo==='ASP').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td></tr>`).join('')}
         </table>
@@ -327,7 +320,6 @@ function render() {
         let tCl = f.turno === "Diurno" ? "dia" : "noite";
         if(statusObj.txt === "Serviço") totalServico++;
 
-        [span_5](start_span)// Painel: Apenas Fiscais/Inspetores e Reservas de serviço[span_5](end_span)
         if(statusObj.txt === "Serviço" && (f.nome.toLowerCase().includes(tPainel) || f.posto.toLowerCase().includes(tPainel))) {
             let card = `<div class="card item">
                 <div><b>${f.nome}</b> <span class="badge-turno ${tCl}">${f.turno[0]}</span><br><small>${f.posto}</small></div>
@@ -336,10 +328,8 @@ function render() {
             
             if(f.cargo === "Fiscal" || f.cargo === "Inspetor") sup.innerHTML += card;
             else if(f.cargo === "Reserva") res.innerHTML += card;
-            [span_6](start_span)// Se for ASP, o card não é adicionado a nenhuma lista do Painel conforme solicitado[span_6](end_span)
         }
 
-        [span_7](start_span)// Gestão: Todos aparecem para edição[span_7](end_span)
         if(f.nome.toLowerCase().includes(tGestao) || f.posto.toLowerCase().includes(tGestao)) {
             let sGeral = calcularStatus(f);
             adm.innerHTML += `<div class="card item">
