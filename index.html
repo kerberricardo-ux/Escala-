@@ -1,11 +1,12 @@
 
-<!DOCTYPE html>
+     <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quântica - Gestão Operacional</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.8/mammoth.browser.min.js"></script>
     <style>
         :root {
             --primary: #1a237e; --secondary: #0d47a1; --accent: #2979ff;
@@ -55,10 +56,8 @@
     
     <div id="painel" class="page active">
         <div style="text-align:center; font-size: 0.85rem; font-weight: bold; color: #666; margin-bottom:10px;" id="dataHoje"></div>
-        
         <div class="section-title">👮 Supervisão (Fiscais / Inspetores)</div>
         <div id="listaSuperv"></div>
-
         <div class="section-title section-volante">🚗 Volantes / Reservas (Em Serviço)</div>
         <div id="listaReservas"></div>
     </div>
@@ -78,17 +77,15 @@
             <input type="text" id="matricula" placeholder="Matrícula">
             
             <label style="font-size: 0.8rem; font-weight: bold; color: #555;">Posto de Trabalho:</label>
-            <select id="posto">
-                <option value="">Selecione o Posto...</option>
-            </select>
+            <select id="posto"><option value="">Selecione o Posto...</option></select>
             
             <label style="font-size: 0.8rem; font-weight: bold; color: #555;">Função:</label>
             <select id="cargo">
+                <option value="ASP">ASP</option>
                 <option value="Fiscal">Fiscal</option>
                 <option value="Inspetor">Inspetor</option>
                 <option value="Reserva">Reserva / Volante</option>
                 <option value="Lider">Líder</option>
-                <option value="ASP">ASP</option>
             </select>
 
             <label style="font-size: 0.8rem; font-weight: bold; color: #555;">Escala:</label>
@@ -107,18 +104,17 @@
         </div>
 
         <div class="card">
-            <h3 style="font-size: 0.9rem; margin-top: 0;">Relatórios e Configurações</h3>
+            <h3 style="font-size: 0.9rem; margin-top: 0;">Relatórios e Importação</h3>
             <button class="btn-p" style="background:#455a64" onclick="gerarRelatorioDia()">📄 PDF: Relatório de Serviço</button>
-            <button class="btn-p" style="background:#546e7a" onclick="gerarRelatorioMensal()">📅 PDF: Escala por Funcionário</button>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
-                <button class="btn-sec" onclick="exportarDados()">Backup Dados</button>
-                <button class="btn-sec" onclick="document.getElementById('fileIn').click()">Importar Dados</button>
-                <button class="btn-sec" style="grid-column: span 2; border: 1px solid var(--accent);" onclick="document.getElementById('filePostos').click()">📂 Importar Lista de Postos (.txt)</button>
+                <button class="btn-sec" onclick="exportarDados()">Backup JSON</button>
+                <button class="btn-sec" onclick="document.getElementById('fileIn').click()">Importar JSON</button>
+                <button class="btn-sec" style="grid-column: span 2; border: 1px solid var(--success); background: #e8f5e9;" onclick="document.getElementById('fileDoc').click()">📂 Importar Lista (Word/TXT)</button>
             </div>
             
             <input type="file" id="fileIn" style="display:none" onchange="importarDados(this)">
-            <input type="file" id="filePostos" style="display:none" accept=".txt" onchange="importarPostosTxt(this)">
+            <input type="file" id="fileDoc" style="display:none" accept=".docx, .doc, .txt" onchange="processarArquivoLista(this)">
         </div>
 
         <div id="listaAdmin"></div>
@@ -132,14 +128,17 @@
 </nav>
 
 <script>
-    // Inicialização de Dados
-    let postosLista = JSON.parse(localStorage.getItem("postos_quantica")) || ["POSTO CENTRAL", "BASE OPERACIONAL"];
+    let postosLista = JSON.parse(localStorage.getItem("postos_quantica")) || ["POSTO CENTRAL"];
     let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
 
     function popularPostos() {
         const select = document.getElementById('posto');
+        const valorAtual = select.value;
         select.innerHTML = '<option value="">Selecione o Posto...</option>';
-        postosLista.sort().forEach(p => { select.innerHTML += `<option value="${p}">${p}</option>`; });
+        postosLista.sort().forEach(p => { 
+            select.innerHTML += `<option value="${p}">${p}</option>`; 
+        });
+        if(valorAtual) select.value = valorAtual;
     }
 
     function mudarPagina(id, btn) {
@@ -162,6 +161,67 @@
         return { cl: "st-servico", txt: "Serviço" };
     }
 
+    // --- IMPORTAÇÃO WORD / TXT ---
+    async function processarArquivoLista(input) {
+        const file = input.files[0];
+        if (!file) return;
+        let textoBruto = "";
+        try {
+            if (file.name.endsWith(".docx") || file.name.endsWith(".doc")) {
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                textoBruto = result.value;
+            } else {
+                textoBruto = await file.text();
+            }
+            importarListaTexto(textoBruto);
+        } catch (e) {
+            alert("Erro ao ler arquivo: " + e.message);
+        }
+        input.value = ""; // Limpa o input
+    }
+
+    function importarListaTexto(texto) {
+        const linhas = texto.split('\n');
+        let novosFuncionarios = [];
+        let novosPostos = new Set(postosLista);
+        let dataPadrao = new Date().toISOString().split('T')[0];
+
+        linhas.forEach((linha, index) => {
+            const partes = linha.trim().split(';');
+            if (partes.length >= 4) {
+                const [nome, matricula, posto, status] = partes;
+                if (nome && status.trim().toLowerCase() === "ativo") {
+                    const postoNome = posto.toUpperCase().trim();
+                    novosPostos.add(postoNome);
+                    novosFuncionarios.push({
+                        id: Date.now() + index,
+                        nome: nome.toUpperCase().trim(),
+                        matricula: matricula.trim(),
+                        posto: postoNome,
+                        cargo: "ASP",
+                        escala: "12x36",
+                        dataInicio: dataPadrao
+                    });
+                }
+            }
+        });
+
+        if (novosFuncionarios.length > 0) {
+            if (confirm(`Encontrados ${novosFuncionarios.length} ativos. Deseja adicionar à lista?`)) {
+                db = [...db, ...novosFuncionarios];
+                postosLista = Array.from(novosPostos);
+                localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
+                localStorage.setItem("postos_quantica", JSON.stringify(postosLista));
+                popularPostos();
+                render();
+                alert("Importação concluída!");
+            }
+        } else {
+            alert("Nenhum funcionário 'Ativo' encontrado no padrão Nome;Matricula;Posto;Status");
+        }
+    }
+
     function salvar() {
         const id = document.getElementById('editId').value;
         const dados = {
@@ -173,16 +233,13 @@
             escala: document.getElementById('escala').value,
             dataInicio: document.getElementById('dataInicio').value
         };
-
-        if(!dados.nome || !dados.dataInicio || !dados.posto) return alert("Erro: Nome, Posto e Data são obrigatórios!");
-
+        if(!dados.nome || !dados.dataInicio || !dados.posto) return alert("Preencha Nome, Posto e Data!");
+        
         if(id) db = db.map(f => f.id === parseInt(id) ? dados : f);
         else db.push(dados);
 
         localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-        limparForm();
-        render();
-        alert("Salvo com sucesso!");
+        limparForm(); render(); alert("Salvo!");
     }
 
     function editar(id) {
@@ -190,30 +247,27 @@
         if(!f) return;
         document.getElementById('editId').value = f.id;
         document.getElementById('nome').value = f.nome;
-        document.getElementById('matricula').value = f.matricula || "";
+        document.getElementById('matricula').value = f.matricula;
         document.getElementById('posto').value = f.posto;
         document.getElementById('cargo').value = f.cargo;
         document.getElementById('escala').value = f.escala;
         document.getElementById('dataInicio').value = f.dataInicio;
         document.getElementById('tituloForm').innerText = "✏️ Editando: " + f.nome;
-        document.getElementById('btnSalvar').innerText = "Atualizar Cadastro";
         document.getElementById('btnCancelar').style.display = "block";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo(0,0);
     }
 
     function limparForm() {
         document.getElementById('editId').value = "";
         document.getElementById('nome').value = "";
         document.getElementById('matricula').value = "";
-        document.getElementById('posto').value = "";
         document.getElementById('dataInicio').value = "";
         document.getElementById('tituloForm').innerText = "Cadastrar Funcionário";
         document.getElementById('btnCancelar').style.display = "none";
-        document.getElementById('btnSalvar').innerText = "Salvar Dados";
     }
 
     function excluir(id) {
-        if(confirm("Tem certeza que deseja excluir permanentemente este funcionário?")) {
+        if(confirm("Excluir funcionário?")) {
             db = db.filter(x => x.id !== id);
             localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
             render();
@@ -232,17 +286,12 @@
             const s = calcularStatus(f);
             const cardHtml = `
                 <div class="card item">
-                    <div class="info">
-                        <b>${f.nome} <span class="badge">Mtr: ${f.matricula || 'N/I'}</span></b>
-                        <span>Posto: ${f.posto} | ${f.escala}</span>
-                    </div>
+                    <div class="info"><b>${f.nome} <span class="badge">Mtr: ${f.matricula}</span></b><span>Posto: ${f.posto}</span></div>
                     <div style="text-align:right">
-                        <span style="font-size:0.7rem; font-weight:bold; color:${s.cl=='st-servico'?'#2e7d32':'#777'}">${s.txt}</span><br>
+                        <span style="font-size:0.7rem; font-weight:bold; color:${s.cl=='st-servico'?'green':'#777'}">${s.txt}</span>
                         <div class="status-dot ${s.cl}"></div>
                     </div>
-                </div>
-            `;
-
+                </div>`;
             if(f.cargo === "Fiscal" || f.cargo === "Inspetor") sup.innerHTML += cardHtml;
             else if(f.cargo === "Reserva" && s.txt === "Serviço") resv.innerHTML += cardHtml;
 
@@ -251,104 +300,64 @@
                     <div class="info"><b>${f.nome}</b><span>${f.cargo} - ${f.posto}</span></div>
                     <div style="display:flex; gap: 5px;">
                         <button class="btn-sec btn-edit" onclick="editar(${f.id})">Editar</button>
-                        <button class="btn-sec btn-del" onclick="excluir(${f.id})">Excluir</button>
+                        <button class="btn-sec btn-del" onclick="excluir(${f.id})">X</button>
                     </div>
-                </div>
-            `;
+                </div>`;
         });
     }
 
-    // Busca por Posto
     function filtrarPosto() {
         const termo = document.getElementById("inputBuscaPosto").value.toLowerCase();
         const res = document.getElementById("resultadoBusca");
         res.innerHTML = "";
         if(termo.length < 2) return;
-
-        postosLista.filter(p => p.toLowerCase().includes(termo)).forEach(postoNome => {
-            const equipe = db.filter(f => f.posto === postoNome);
-            let equipeHtml = "";
+        postosLista.filter(p => p.toLowerCase().includes(termo)).forEach(pNome => {
+            const equipe = db.filter(f => f.posto === pNome);
+            let html = `<div class="card"><h3 style="margin:0; font-size:1rem; color:var(--primary);">📍 ${pNome}</h3>`;
             equipe.forEach(f => {
                 const s = calcularStatus(f);
-                equipeHtml += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f0f0f0; font-size:0.9rem;">
-                    <span>${f.nome} <small>(${f.cargo})</small></span>
-                    <span style="font-weight:bold; color:${s.cl=='st-servico'?'green':'#999'}">${s.txt}</span>
+                html += `<div style="display:flex; justify-content:space-between; padding:8px 0; border-top:1px solid #eee;">
+                    <span>${f.nome}</span><span style="color:${s.cl=='st-servico'?'green':'#999'}">${s.txt}</span>
                 </div>`;
             });
-            res.innerHTML += `<div class="card"><h3 style="margin:0 0 10px 0; color:var(--primary); font-size:1rem;">📍 ${postoNome}</h3>${equipeHtml || '<i style="color:#999">Nenhum funcionário neste posto.</i>'}</div>`;
+            res.innerHTML += html + "</div>";
         });
-    }
-
-    // Funções de Importação/Exportação
-    function importarPostosTxt(input) {
-        const reader = new FileReader();
-        reader.onload = function(){
-            const linhas = reader.result.split('\n');
-            postosLista = linhas.map(l => l.trim().toUpperCase()).filter(l => l !== "");
-            localStorage.setItem("postos_quantica", JSON.stringify(postosLista));
-            popularPostos();
-            alert("Lista de Postos atualizada com sucesso!");
-        };
-        reader.readAsText(input.files[0]);
     }
 
     function gerarRelatorioDia() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.setFontSize(16); doc.text("QUÂNTICA - RELATÓRIO OPERACIONAL DIÁRIO", 10, 15);
-        doc.setFontSize(10); doc.text("Gerado em: " + new Date().toLocaleString(), 10, 22);
-        let y = 35;
+        doc.text("QUÂNTICA - RELATÓRIO OPERACIONAL", 10, 10);
+        let y = 20;
         db.forEach(f => {
             const s = calcularStatus(f);
             if(s.txt === "Serviço") {
-                doc.text(`${f.matricula || '000'} - ${f.cargo}: ${f.nome} | Posto: ${f.posto}`, 10, y);
-                y += 8;
-                if(y > 280) { doc.addPage(); y = 20; }
+                doc.text(`${f.nome} - ${f.posto} (${f.cargo})`, 10, y);
+                y += 10;
             }
         });
-        doc.save(`servico_quantica_${new Date().toLocaleDateString()}.pdf`);
-    }
-
-    function gerarRelatorioMensal() {
-        const nome = prompt("Digite o nome do funcionário para gerar escala:");
-        const f = db.find(x => x.nome.toUpperCase().includes(nome.toUpperCase()));
-        if(!f) return alert("Funcionário não localizado!");
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFontSize(14); doc.text(`ESCALA MENSAL: ${f.nome}`, 10, 15);
-        doc.setFontSize(10); doc.text(`Matrícula: ${f.matricula} | Posto: ${f.posto} | Escala: ${f.escala}`, 10, 22);
-        let y = 35; let d = new Date();
-        for(let i=0; i<31; i++) {
-            const s = calcularStatus(f, d);
-            doc.text(`${d.toLocaleDateString('pt-BR')}: ${s.txt}`, 10, y);
-            y += 7; d.setDate(d.getDate() + 1);
-            if(y > 280) { doc.addPage(); y = 20; }
-        }
-        doc.save(`escala_${f.nome}.pdf`);
+        doc.save("relatorio.pdf");
     }
 
     function exportarDados() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
-        const dl = document.createElement('a');
-        dl.setAttribute("href", dataStr);
-        dl.setAttribute("download", "backup_quantica.json");
-        dl.click();
+        const blob = new Blob([JSON.stringify(db)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = "backup.json"; a.click();
     }
 
     function importarDados(input) {
         const reader = new FileReader();
-        reader.onload = function(){
-            db = JSON.parse(reader.result);
+        reader.onload = e => {
+            db = JSON.parse(e.target.result);
             localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-            render();
-            alert("Dados Importados!");
+            render(); alert("Importado!");
         };
         reader.readAsText(input.files[0]);
     }
 
-    // Início
     popularPostos();
     render();
 </script>
 </body>
 </html>
+       
