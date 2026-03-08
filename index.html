@@ -41,36 +41,39 @@
 
         <div style="text-align:center; margin-bottom:15px">
             <span style="background:#e8f5e9; padding:8px 15px; border-radius:20px; color:var(--success); font-weight:bold">
-                👮 Em Serviço: <span id="qtdServico">0</span>
+                👮 Em Serviço Hoje: <span id="qtdServico">0</span>
             </span>
         </div>
 
         <button onclick="gerarRelatorioPDF()" class="btn-p">📄 GERAR RELATÓRIO PDF (EFETIVO HOJE)</button>
 
-        <div class="section-title">👮 Supervisão</div>
+        <div class="section-title">👮 Supervisão (Em Serviço)</div>
         <div id="listaSuperv"></div>
-        <div class="section-title">🚗 Reservas em Serviço</div>
+        
+        <div class="section-title">🚗 Reservas (Em Serviço)</div>
         <div id="listaReservas"></div>
+
+        <div class="section-title">📑 Outros Postos / ASP (Em Serviço)</div>
+        <div id="listaASPServico"></div>
     </div>
 
     <div id="gestao" class="page">
         <div class="card">
-            <h3>Backup e Importação</h3>
+            <h3>Importação e Backup</h3>
             <div style="display:flex; gap:5px">
-                <button class="btn-import" onclick="exportarDados()" style="background:#e3f2fd; border-style:solid">💾 Backup</button>
-                <button class="btn-import" onclick="document.getElementById('fileRestore').click()" style="background:#f1f8e9; border-style:solid">📂 Restaurar</button>
+                <button class="btn-import" onclick="exportarDados()" style="background:#e3f2fd; border-style:solid">💾 Exportar Backup</button>
+                <button class="btn-import" onclick="document.getElementById('fileRestore').click()" style="background:#f1f8e9; border-style:solid">📂 Restaurar Backup</button>
             </div>
             <input type="file" id="fileRestore" accept=".json" style="display:none" onchange="importarBackup(this)">
             
-            <button class="btn-import" onclick="document.getElementById('fileInput').click()" style="margin-top:10px; background: #e8eaf6; border: 1px solid #1a237e; color: #1a237e;">📄 IMPORTAR LISTA TEXTO (.TXT / .CSV)</button>
+            <button class="btn-import" onclick="document.getElementById('fileInput').click()" style="margin-top:10px; background: #e8eaf6; border: 1px solid #1a237e; color: #1a237e;">📄 IMPORTAR TXT/CSV (NOME;MATRICULA;POSTO;STATUS)</button>
             <input type="file" id="fileInput" accept=".txt,.csv" style="display:none" onchange="importarArquivoTexto(this)">
-            <p style="font-size: 0.7rem; color: #666; margin-top: 5px;">Formato: NOME;MATRICULA;POSTO;STATUS</p>
         </div>
 
         <div class="card">
-            <h3 id="tituloForm">Cadastro Manual</h3>
+            <h3 id="tituloForm">Cadastro / Edição Manual</h3>
             <input type="hidden" id="editId">
-            <input type="text" id="nome" placeholder="Nome do Funcionário">
+            <input type="text" id="nome" placeholder="Nome Completo">
             <input type="text" id="posto" placeholder="Nome do Posto">
             
             <div style="display:flex; gap:5px">
@@ -95,26 +98,26 @@
                 <option value="6x1">6x1</option>
             </select>
 
-            <input type="date" id="dataInicio">
-            <button class="btn-p" onclick="salvar()">Salvar Alterações</button>
-            <button id="btnCancelar" style="display:none; background:#eee; border:none" onclick="limparForm()">Cancelar</button>
+            <input type="date" id="dataInicio" title="Data de Início para cálculo de escala">
+            <button class="btn-p" onclick="salvar()">Salvar Registro</button>
+            <button id="btnCancelar" style="display:none; background:#eee; border:none; margin-top:5px" onclick="limparForm()">Cancelar Edição</button>
         </div>
 
-        <div class="section-title">Lista Geral</div>
-        <input type="text" id="buscaGestao" placeholder="🔍 Filtrar lista..." onkeyup="render()" style="margin-bottom:10px">
+        <div class="section-title">Efetivo Cadastrado (Geral)</div>
+        <input type="text" id="buscaGestao" placeholder="🔍 Filtrar por nome ou posto..." onkeyup="render()" style="margin-bottom:10px">
         <div id="listaAdmin"></div>
     </div>
 </div>
 
 <nav>
-    <button onclick="mudarPagina('painel',this)" class="active"><span>📋</span>Painel</button>
-    <button onclick="mudarPagina('gestao',this)"><span>⚙️</span>Gestão</button>
+    <button id="btnPainel" onclick="mudarPagina('painel',this)" class="active"><span>📋</span>Painel</button>
+    <button id="btnGestao" onclick="mudarPagina('gestao',this)"><span>⚙️</span>Gestão</button>
 </nav>
 
 <script>
 let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
 
-// NOVA FUNÇÃO PARA IMPORTAR ARQUIVO DE TEXTO
+// --- FUNÇÃO DE IMPORTAÇÃO DE TEXTO ---
 function importarArquivoTexto(input) {
     if (!input || !input.files[0]) return;
 
@@ -125,36 +128,30 @@ function importarArquivoTexto(input) {
         const texto = e.target.result;
         if (!texto || !texto.trim()) return alert("O arquivo está vazio.");
 
-        // Divide por linhas e remove vazias
         const linhas = texto.split(/\r?\n/).filter(l => l.trim().length > 0);
-        
         let importados = 0;
         let dataHoje = new Date().toISOString().split('T')[0];
 
         linhas.forEach((linha, index) => {
-            // Ignora cabeçalho se houver
             if (linha.toUpperCase().includes("NOME;MATRICULA")) return;
 
             const colunas = linha.split(';');
 
-            // Verifica se a linha tem as colunas Nome, Matrícula, Posto, Status (mínimo 3 pra funcionar)
             if (colunas.length >= 3) {
                 const nomeS = colunas[0] ? colunas[0].trim().toUpperCase() : "";
                 const postoS = colunas[2] ? colunas[2].trim().toUpperCase() : "POSTO NÃO DEFINIDO";
                 const statusS = colunas[3] ? colunas[3].trim().toUpperCase() : "ATIVO";
 
-                // Só importa se o nome existir e o status for ATIVO
                 if (nomeS && statusS === "ATIVO") {
-                    const novoFunc = {
+                    db.push({
                         id: Date.now() + index + Math.random(),
                         nome: nomeS,
                         posto: postoS,
-                        cargo: "ASP",
+                        cargo: "ASP", 
                         turno: "Diurno",
                         escala: "12x36",
                         dataInicio: dataHoje
-                    };
-                    db.push(novoFunc);
+                    });
                     importados++;
                 }
             }
@@ -162,16 +159,16 @@ function importarArquivoTexto(input) {
 
         if (importados > 0) {
             localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-            alert(importados + " funcionários ativos importados com sucesso!");
+            alert(importados + " funcionários importados com sucesso!");
             render();
         } else {
-            alert("Nenhum dado válido encontrado. Use o formato: NOME;MATRICULA;POSTO;STATUS");
+            alert("Nenhum dado válido encontrado. O formato deve ser: NOME;MATRICULA;POSTO;STATUS");
         }
     };
-
     reader.readAsText(file, "UTF-8");
 }
 
+// --- CONTROLE DE NAVEGAÇÃO ---
 function mudarPagina(id, btn) {
     document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
     document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
@@ -180,6 +177,7 @@ function mudarPagina(id, btn) {
     render();
 }
 
+// --- LÓGICA DE ESCALA ---
 function calcularStatus(f) {
     let hoje = new Date(); hoje.setHours(0,0,0,0);
     let inicio = new Date(f.dataInicio);
@@ -199,6 +197,7 @@ function calcularStatus(f) {
     return emServico ? {txt: "Serviço", cl: "st-servico"} : {txt: "Folga", cl: "st-folga"};
 }
 
+// --- CRUD MANUAL ---
 function salvar() {
     let idEdicao = document.getElementById("editId").value;
     let dados = {
@@ -211,6 +210,7 @@ function salvar() {
         dataInicio: document.getElementById("dataInicio").value
     };
     if(!dados.nome || !dados.dataInicio) return alert("Preencha Nome e Data!");
+    
     if(idEdicao) {
         let index = db.findIndex(f => f.id == idEdicao);
         db[index] = dados;
@@ -231,13 +231,13 @@ function editar(id) {
     document.getElementById("turno").value = f.turno;
     document.getElementById("escala").value = f.escala;
     document.getElementById("dataInicio").value = f.dataInicio;
-    document.getElementById("tituloForm").innerText = "Alterando Dados";
+    document.getElementById("tituloForm").innerText = "Editando Funcionário";
     document.getElementById("btnCancelar").style.display = "block";
     window.scrollTo(0,0);
 }
 
 function excluir(id) {
-    if(confirm("Deseja apagar este registro?")) {
+    if(confirm("Deseja apagar este registro permanentemente?")) {
         db = db.filter(f => f.id !== id);
         localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
         render();
@@ -249,10 +249,11 @@ function limparForm() {
     document.getElementById("nome").value = "";
     document.getElementById("posto").value = "";
     document.getElementById("dataInicio").value = "";
-    document.getElementById("tituloForm").innerText = "Cadastro Manual";
+    document.getElementById("tituloForm").innerText = "Cadastro / Edição Manual";
     document.getElementById("btnCancelar").style.display = "none";
 }
 
+// --- BACKUP ---
 function exportarDados() {
     const dados = JSON.stringify(db, null, 2);
     const blob = new Blob([dados], {type: "application/json"});
@@ -268,16 +269,17 @@ function importarBackup(input) {
     reader.onload = function(e) {
         try {
             const novosDados = JSON.parse(e.target.result);
-            if(confirm("Substituir dados atuais pelo backup?")) {
+            if(confirm("Deseja carregar este backup? Isso substituirá a lista atual.")) {
                 db = novosDados;
                 localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
                 render();
             }
-        } catch(err) { alert("Arquivo inválido."); }
+        } catch(err) { alert("Arquivo de backup inválido."); }
     };
     reader.readAsText(input.files[0]);
 }
 
+// --- RELATÓRIO PDF ---
 function gerarRelatorioPDF() {
     const hoje = new Date().toLocaleDateString('pt-BR');
     const emServico = db.filter(f => calcularStatus(f).txt === "Serviço");
@@ -298,7 +300,7 @@ function gerarRelatorioPDF() {
         <table><tr><th>Nome</th><th>Posto</th><th>Turno</th></tr>
         ${emServico.filter(f=>f.cargo==='Reserva').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td><td>${f.turno}</td></tr>`).join('')}
         </table>
-        <h2>Efetivo Postos (ASP)</h2>
+        <h2>Efetivo Geral (ASP)</h2>
         <table><tr><th>Nome</th><th>Posto</th><th>Turno</th></tr>
         ${emServico.filter(f=>f.cargo==='ASP').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td><td>${f.turno}</td></tr>`).join('')}
         </table>
@@ -308,39 +310,56 @@ function gerarRelatorioPDF() {
     setTimeout(() => { win.print(); win.close(); }, 500);
 }
 
+// --- RENDERIZAÇÃO PRINCIPAL ---
 function render() {
     let tPainel = document.getElementById("buscaPainel").value.toLowerCase();
     let tGestao = document.getElementById("buscaGestao").value.toLowerCase();
+    
     let sup = document.getElementById("listaSuperv");
     let res = document.getElementById("listaReservas");
+    let asps = document.getElementById("listaASPServico");
     let adm = document.getElementById("listaAdmin");
-    sup.innerHTML = ""; res.innerHTML = ""; adm.innerHTML = "";
+    
+    sup.innerHTML = ""; res.innerHTML = ""; asps.innerHTML = ""; adm.innerHTML = "";
     document.getElementById("dataHoje").innerText = "HOJE: " + new Date().toLocaleDateString('pt-BR');
+    
     let totalServico = 0;
 
     db.forEach(f => {
-        let s = calcularStatus(f);
+        let statusObj = calcularStatus(f);
         let tCl = f.turno === "Diurno" ? "dia" : "noite";
-        if(s.txt === "Serviço") totalServico++;
+        
+        // Contagem global de serviço
+        if(statusObj.txt === "Serviço") totalServico++;
 
-        if(f.nome.toLowerCase().includes(tPainel) || f.posto.toLowerCase().includes(tPainel)) {
+        // Render para Painel (Somente quem está em serviço e bate com a busca)
+        if(statusObj.txt === "Serviço" && (f.nome.toLowerCase().includes(tPainel) || f.posto.toLowerCase().includes(tPainel))) {
             let card = `<div class="card item">
                 <div><b>${f.nome}</b> <span class="badge-turno ${tCl}">${f.turno[0]}</span><br><small>${f.posto}</small></div>
-                <div class="status-dot ${s.cl}"></div>
+                <div class="status-dot ${statusObj.cl}"></div>
             </div>`;
+            
             if(f.cargo === "Fiscal" || f.cargo === "Inspetor") sup.innerHTML += card;
-            if(f.cargo === "Reserva" && s.txt === "Serviço") res.innerHTML += card;
+            else if(f.cargo === "Reserva") res.innerHTML += card;
+            else asps.innerHTML += card;
         }
 
-        if(f.nome.toLowerCase().includes(tGestao)) {
+        // Render para Gestão (Todos, com busca)
+        if(f.nome.toLowerCase().includes(tGestao) || f.posto.toLowerCase().includes(tGestao)) {
+            let sGeral = calcularStatus(f);
             adm.innerHTML += `<div class="card item">
-                <div><b>${f.nome}</b><br><small>${f.posto} | ${f.escala}</small></div>
-                <div style="display:flex; gap:5px"><button class="btn-edit" onclick="editar(${f.id})">✏️</button><button class="btn-del" onclick="excluir(${f.id})">🗑️</button></div>
+                <div><b>${f.nome}</b><br><small>${f.posto} | ${f.cargo} | ${f.escala} (${sGeral.txt})</small></div>
+                <div style="display:flex; gap:5px">
+                    <button class="btn-edit" onclick="editar(${f.id})">✏️</button>
+                    <button class="btn-del" onclick="excluir(${f.id})">🗑️</button>
+                </div>
             </div>`;
         }
     });
     document.getElementById("qtdServico").innerText = totalServico;
 }
+
+// Inicializar
 render();
 </script>
 </body>
