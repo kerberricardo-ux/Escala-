@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quântica - Gestão Operacional v3.9</title>
+    <title>Quântica - Gestão Operacional v4.0</title>
     <style>
         :root{ --primary:#1a237e; --secondary:#0d47a1; --success:#2e7d32; --danger:#c62828; --warning:#fbc02d; --info:#0288d1; --bg:#f5f5f5; --white:#ffffff; }
         body{ font-family:'Segoe UI',sans-serif; margin:0; background:var(--bg); padding-bottom:90px; }
@@ -24,6 +24,7 @@
         .st-alerta{ background:var(--danger) !important; color: white !important; }
         input, select, button { width:100%; padding:12px; margin:5px 0; border-radius:8px; border:1px solid #ccc; box-sizing: border-box; }
         .btn-p{ background:var(--primary); color:white; font-weight:bold; cursor:pointer; border:none; }
+        .btn-share{ background:var(--success); color:white; font-weight:bold; cursor:pointer; border:none; margin-top:5px; }
         .btn-import{ background:#eceff1; color:#455a64; border:1px dashed #455a64; cursor:pointer;}
         .btn-update{ background:#fff3e0; color:#e65100; border:1px solid #ffb74d; font-weight: bold; cursor:pointer;}
         .btn-edit { background: #fff9c4; border: 1px solid #fbc02d; width: auto; padding: 8px 12px; cursor:pointer; border-radius:5px;}
@@ -51,7 +52,8 @@
             </span>
         </div>
 
-        <button onclick="gerarRelatorioPDF()" class="btn-p">📄 GERAR RELATÓRIO DE SERVIÇO</button>
+        <button onclick="compartilharRelatorioTexto()" class="btn-share">📤 COMPARTILHAR RELATÓRIO (WHATSAPP)</button>
+        <button onclick="gerarRelatorioPDF()" class="btn-p" style="opacity:0.6; font-size:0.8rem">📄 Tentar Gerar PDF (Impressão)</button>
 
         <div class="section-title">👮 Supervisores (Em Serviço)</div>
         <div id="listaSuperv"></div>
@@ -156,14 +158,8 @@ function calcularStatus(f) {
 
 function registrarOcorrencia(id) {
     const f = db.find(x => x.id === id);
-    const tipo = prompt(`Registrar ocorrência para ${f.nome}:\n1 - Falta\n2 - Atestado\n3 - Cobrindo Posto\n4 - Limpar/Normal`);
-    
-    if (tipo === "1") f.obs = "FALTA";
-    else if (tipo === "2") f.obs = "ATESTADO";
-    else if (tipo === "3") f.obs = "COBRINDO POSTO";
-    else if (tipo === "4") delete f.obs;
-    else return;
-
+    const tipo = prompt(`Ocorrência para ${f.nome}:\n1-Falta, 2-Atestado, 3-Cob. Posto, 4-Limpar`);
+    if(tipo==="1") f.obs="FALTA"; else if(tipo==="2") f.obs="ATESTADO"; else if(tipo==="3") f.obs="COB. POSTO"; else if(tipo==="4") delete f.obs;
     localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
     render();
 }
@@ -193,8 +189,7 @@ function render() {
             let card = `<div class="card item ${cardAlerta}">
                 <div style="flex:1">
                     <b>${f.nome}</b> <span class="badge-turno ${tCl}">${f.turno[0]}</span><br>
-                    <small>${f.posto} | Mat: ${f.matricula || 'N/A'}</small>
-                    <span class="label-status" style="color:${cardAlerta ? 'white' : (statusObj.cl === 'st-reserva' ? '#0288d1' : '#2e7d32')}">${statusObj.txt}</span>
+                    <small>${f.posto}</small><br>
                     ${f.obs ? `<span class="obs-tag">${f.obs}</span>` : ''}
                 </div>
                 <div style="display:flex; align-items:center; gap:10px">
@@ -202,7 +197,6 @@ function render() {
                     <div class="status-dot ${statusObj.cl}"></div>
                 </div>
             </div>`;
-            
             if(f.cargo === "Fiscal" || f.cargo === "Inspetor") sup.innerHTML += card;
             else if(f.cargo === "Reserva" || statusObj.cl === "st-reserva") res.innerHTML += card;
             else pos.innerHTML += card;
@@ -211,7 +205,7 @@ function render() {
         if(f.nome.toLowerCase().includes(tGestao) || f.posto.toLowerCase().includes(tGestao)) {
             let sGeral = calcularStatus(f);
             adm.innerHTML += `<div class="card item">
-                <div><b>${f.nome}</b><br><small>${f.posto} | ${f.escala} (${sGeral.txt})</small></div>
+                <div><b>${f.nome}</b><br><small>${f.posto}</small></div>
                 <div style="display:flex; gap:5px">
                     <button class="btn-edit" onclick="editar(${f.id})">✏️</button>
                     <button class="btn-del" onclick="excluir(${f.id})">🗑️</button>
@@ -222,40 +216,55 @@ function render() {
     document.getElementById("qtdServico").innerText = totalServico;
 }
 
-function gerarRelatorioPDF() {
+// SOLUÇÃO DEFINITIVA PARA MOBILE: COMPARTILHAR TEXTO FORMATADO
+function compartilharRelatorioTexto() {
     const hoje = new Date().toLocaleDateString('pt-BR');
     const emServico = db.filter(f => calcularStatus(f).servico).sort((a,b) => a.nome.localeCompare(b.nome));
-    let win = window.open('', '_blank');
-    if (!win) return alert("Bloqueio de pop-up detectado.");
-
-    let html = `<html><head><title>Relatório - ${hoje}</title><style>
-        body{font-family:sans-serif; padding:20px;} h1{color:#1a237e; border-bottom:3px solid #1a237e; text-align:center;} 
-        h2{background: #e8eaf6; padding: 10px; border-left: 5px solid #1a237e; margin-top:20px;} 
-        table{width:100%; border-collapse:collapse; margin-bottom:20px} 
-        th,td{border:1px solid #ccc; padding:10px; text-align:left}
-        .alerta{color:red; font-weight:bold;}
-    </style></head><body>
-    <h1>Quântica - Efetivo em Serviço (${hoje})</h1>
     
-    <h2>SUPERVISORES E FISCAIS</h2>
-    <table><tr><th>Nome</th><th>Posto</th><th>Ocorrência</th></tr>
-    ${emServico.filter(f=>f.cargo==='Fiscal'||f.cargo==='Inspetor').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td><td class="alerta">${f.obs || '-'}</td></tr>`).join('')}</table>
+    let msg = `*QUÂNTICA - RELATÓRIO OPERACIONAL*\n📅 Data: ${hoje}\n\n`;
 
-    <h2>RESERVAS E BASE</h2>
-    <table><tr><th>Nome</th><th>Posto</th><th>Ocorrência</th></tr>
-    ${emServico.filter(f=>f.cargo==='Reserva' || calcularStatus(f).cl === 'st-reserva').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td><td class="alerta">${f.obs || '-'}</td></tr>`).join('')}</table>
+    msg += `*👮 SUPERVISORES / FISCAIS:*\n`;
+    emServico.filter(f=>f.cargo==='Fiscal'||f.cargo==='Inspetor').forEach(f => {
+        msg += `• ${f.nome} - ${f.posto} ${f.obs ? `[${f.obs}]` : ''}\n`;
+    });
 
-    <h2>EFETIVO NOS POSTOS</h2>
-    <table><tr><th>Nome</th><th>Posto</th><th>Ocorrência</th></tr>
-    ${emServico.filter(f=>f.cargo==='ASP' && calcularStatus(f).cl !== 'st-reserva').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td><td class="alerta">${f.obs || '-'}</td></tr>`).join('')}</table>
-    </body></html>`;
+    msg += `\n*🚗 RESERVAS / BASE:*\n`;
+    emServico.filter(f=>f.cargo==='Reserva' || calcularStatus(f).cl === 'st-reserva').forEach(f => {
+        msg += `• ${f.nome} - ${f.posto} ${f.obs ? `[${f.obs}]` : ''}\n`;
+    });
 
-    win.document.write(html); win.document.close();
-    setTimeout(() => { win.print(); }, 500);
+    msg += `\n*🏢 EFETIVO NOS POSTOS (ASP):*\n`;
+    emServico.filter(f=>f.cargo==='ASP' && calcularStatus(f).cl !== 'st-reserva').forEach(f => {
+        msg += `• ${f.nome} - ${f.posto} ${f.obs ? `[${f.obs}]` : ''}\n`;
+    });
+
+    msg += `\n_Total em serviço: ${emServico.length}_`;
+
+    if (navigator.share) {
+        navigator.share({
+            title: 'Relatório Operacional Quântica',
+            text: msg
+        }).catch(err => console.log("Erro ao compartilhar"));
+    } else {
+        // Fallback para navegadores antigos ou PC
+        const win = window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+    }
 }
 
-// Funções padrão mantidas
-function acionarAtualizacaoTotal() { if(confirm("Isso apagará a lista atual. Continuar?")) document.getElementById('fileInputUpdate').click(); }
+// Relatório PDF Original (Tentativa)
+function gerarRelatorioPDF() {
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    const emServico = db.filter(f => calcularStatus(f).servico);
+    let win = window.open('', '_blank');
+    if(!win) return alert("Bloqueio de pop-up!");
+    let html = `<html><body style="font-family:sans-serif"><h1>Relatório Quântica ${hoje}</h1>`;
+    emServico.forEach(f => { html += `<p><b>${f.nome}</b> - ${f.posto} ${f.obs ? `(${f.obs})` : ''}</p>`; });
+    html += `</body></html>`;
+    win.document.write(html); win.document.close(); win.print();
+}
+
+// Restante das funções auxiliares
+function acionarAtualizacaoTotal() { if(confirm("Apagar tudo?")) document.getElementById('fileInputUpdate').click(); }
 function mudarPagina(id, btn) { document.querySelectorAll(".page").forEach(p => p.classList.remove("active")); document.querySelectorAll("nav button").forEach(b => b.classList.remove("active")); document.getElementById(id).classList.add("active"); btn.classList.add("active"); render(); }
 function salvar() {
     let idEdicao = document.getElementById("editId").value;
@@ -288,8 +297,8 @@ function editar(id) {
     document.getElementById("btnCancelar").style.display = "block";
     window.scrollTo(0,0);
 }
-function excluir(id) { if(confirm("Apagar registro?")) { db = db.filter(f => f.id !== id); localStorage.setItem("db_quantica_vFinal", JSON.stringify(db)); render(); } }
-function limparForm() { document.getElementById("editId").value = ""; document.getElementById("nome").value = ""; document.getElementById("matricula").value = ""; document.getElementById("posto").value = ""; document.getElementById("dataInicio").value = ""; document.getElementById("tituloForm").innerText = "Cadastro / Edição Manual"; document.getElementById("btnCancelar").style.display = "none"; }
+function excluir(id) { if(confirm("Excluir?")) { db = db.filter(f => f.id !== id); localStorage.setItem("db_quantica_vFinal", JSON.stringify(db)); render(); } }
+function limparForm() { document.getElementById("editId").value = ""; document.getElementById("nome").value = ""; document.getElementById("matricula").value = ""; document.getElementById("posto").value = ""; document.getElementById("dataInicio").value = ""; document.getElementById("tituloForm").innerText = "Cadastro Manual"; document.getElementById("btnCancelar").style.display = "none"; }
 function exportarDados() { const blob = new Blob([JSON.stringify(db, null, 2)], {type: "application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `backup_quantica.json`; a.click(); }
 function importarBackup(input) { const reader = new FileReader(); reader.onload = function(e) { db = JSON.parse(e.target.result); localStorage.setItem("db_quantica_vFinal", JSON.stringify(db)); render(); }; reader.readAsText(input.files[0]); }
 function importarArquivoTexto(input, limparTudo) {
@@ -301,23 +310,21 @@ function importarArquivoTexto(input, limparTudo) {
         let novosRegistros = [];
         let dataHoje = new Date().toISOString().split('T')[0];
         linhas.forEach((linha, index) => {
-            if (linha.toUpperCase().includes("NOME;MATRICULA")) return;
             const colunas = linha.split(';');
             if (colunas.length >= 3) {
                 const nomeS = colunas[0]?.trim().toUpperCase();
-                const matriculaS = colunas[1]?.trim().toUpperCase() || "N/A";
                 const postoS = colunas[2]?.trim().toUpperCase();
-                const statusS = colunas[3]?.trim().toUpperCase() || "ATIVO";
-                if (nomeS && statusS === "ATIVO") {
+                if (nomeS && !linha.includes("NOME;")) {
                     let cargoAuto = "ASP";
                     if(postoS.includes("RESERVA")) cargoAuto = "Reserva";
-                    if(postoS.includes("FISCAL") || postoS.includes("INSPETOR") || postoS.includes("OPERACIONAL")) cargoAuto = "Fiscal";
-                    novosRegistros.push({ id: Date.now() + index, nome: nomeS, matricula: matriculaS, posto: postoS, cargo: cargoAuto, turno: "Diurno", escala: "12x36", dataInicio: dataHoje });
+                    if(postoS.includes("FISCAL") || postoS.includes("INSPETOR")) cargoAuto = "Fiscal";
+                    novosRegistros.push({ id: Date.now() + index, nome: nomeS, matricula: colunas[1] || "N/A", posto: postoS, cargo: cargoAuto, turno: "Diurno", escala: "12x36", dataInicio: dataHoje });
                 }
             }
         });
-        if (novosRegistros.length > 0) { db = limparTudo ? novosRegistros : db.concat(novosRegistros); localStorage.setItem("db_quantica_vFinal", JSON.stringify(db)); alert(novosRegistros.length + " funcionários instalados!"); render(); }
-        input.value = "";
+        db = limparTudo ? novosRegistros : db.concat(novosRegistros);
+        localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
+        render();
     };
     reader.readAsText(input.files[0], "UTF-8");
 }
