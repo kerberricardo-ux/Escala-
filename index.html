@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quântica - Gestão Operacional v5.0</title>
+    <title>Quântica - Gestão Operacional v5.1</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root{ --primary:#1a237e; --secondary:#0d47a1; --success:#2e7d32; --danger:#c62828; --warning:#fbc02d; --info:#0288d1; --bg:#f5f5f5; --white:#ffffff; }
         body{ font-family:'Segoe UI',sans-serif; margin:0; background:var(--bg); padding-bottom:90px; }
@@ -26,32 +27,43 @@
         input, select, button { width:100%; padding:12px; margin:5px 0; border-radius:8px; border:1px solid #ccc; box-sizing: border-box; }
         .btn-p{ background:var(--primary); color:white; font-weight:bold; cursor:pointer; border:none; }
         .btn-share{ background:var(--success); color:white; font-weight:bold; cursor:pointer; border:none; margin-top:5px; }
+        .btn-pdf{ background:var(--danger); color:white; font-weight:bold; cursor:pointer; border:none; margin-top:5px; }
         .btn-status { background: #f0f0f0; border: 1px solid #ccc; width: auto; padding: 8px 12px; cursor:pointer; border-radius:5px; font-size: 1.2rem; }
         .badge-turno { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; color: white; margin-left: 5px; }
         .dia { background: var(--warning); color: #000; }
         .noite { background: #303f9f; color: #fff; }
         .obs-tag { background: #ffd54f; color: #000; font-size: 0.65rem; padding: 2px 5px; border-radius: 3px; font-weight: bold; margin-top: 5px; display: inline-block; }
+        
+        /* Estilos específicos para o PDF não bugar */
+        #pdf-content { padding: 20px; background: white; }
     </style>
 </head>
 <body>
 
-<header>QUÂNTICA - OPERACIONAL v5.0</header>
+<header id="app-header">QUÂNTICA - OPERACIONAL v5.1</header>
 
 <div class="container">
     <div id="painel" class="page active">
         <div id="dataHoje" style="text-align:center; margin-bottom:10px; font-weight:bold; color:#666"></div>
-        <input type="text" id="buscaPainel" placeholder="🔍 Buscar por nome ou posto..." onkeyup="render()" style="margin-bottom:15px">
-
-        <button onclick="compartilharRelatorioTexto()" class="btn-share">📤 COMPARTILHAR RELATÓRIO</button>
-
-        <div class="section-title">👮 Supervisores (Em Serviço)</div>
-        <div id="listaSuperv"></div>
         
-        <div class="section-title">🚗 Reservas / Base (Em Serviço)</div>
-        <div id="listaReservas"></div>
+        <div id="controles-painel">
+            <input type="text" id="buscaPainel" placeholder="🔍 Buscar por nome ou posto..." onkeyup="render()" style="margin-bottom:15px">
+            <div style="display: flex; gap: 5px;">
+                <button onclick="compartilharRelatorioTexto()" class="btn-share">📤 WHATSAPP</button>
+                <button onclick="gerarRelatorioPDF()" class="btn-pdf">📄 GERAR PDF</button>
+            </div>
+        </div>
 
-        <div class="section-title">🏢 Postos (Em Serviço)</div>
-        <div id="listaPostosOrganizados"></div>
+        <div id="area-impressao">
+            <div class="section-title">👮 Supervisores (Em Serviço)</div>
+            <div id="listaSuperv"></div>
+            
+            <div class="section-title">🚗 Reservas / Base (Em Serviço)</div>
+            <div id="listaReservas"></div>
+
+            <div class="section-title">🏢 Postos (Em Serviço)</div>
+            <div id="listaPostosOrganizados"></div>
+        </div>
     </div>
 
     <div id="gestao" class="page">
@@ -64,7 +76,7 @@
             <select id="postoSelect" onchange="verificarNovoPosto(this.value)">
                 <option value="">-- Selecione um Posto --</option>
                 <option value="NOVO">+ ADICIONAR OU ALTERAR POSTO DA LISTA</option>
-                </select>
+            </select>
             <input type="text" id="postoManual" placeholder="Digite o nome do posto" style="display:none; border-color: var(--primary);">
             
             <div style="display:flex; gap:5px">
@@ -99,7 +111,7 @@
     </div>
 </div>
 
-<nav>
+<nav id="app-nav">
     <button id="btnPainel" onclick="mudarPagina('painel',this)" class="active"><span>📋</span>Painel</button>
     <button id="btnGestao" onclick="mudarPagina('gestao',this)"><span>⚙️</span>Gestão</button>
 </nav>
@@ -125,13 +137,10 @@ const listaPostosPredefinida = [
 
 function popularSelectPostos() {
     const select = document.getElementById("postoSelect");
-    // Mantém as duas primeiras opções e limpa o resto
     while(select.options.length > 2) select.remove(2);
-    
     listaPostosPredefinida.sort().forEach(p => {
         let opt = document.createElement("option");
-        opt.value = p;
-        opt.text = p;
+        opt.value = p; opt.text = p;
         select.add(opt);
     });
 }
@@ -183,7 +192,6 @@ function render() {
     sup.innerHTML = ""; res.innerHTML = ""; posOrg.innerHTML = ""; adm.innerHTML = "";
     document.getElementById("dataHoje").innerText = "HOJE: " + new Date().toLocaleDateString('pt-BR');
     
-    // Agrupamento por postos para o Painel
     let postosAgrupados = {};
 
     db.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(f => {
@@ -191,16 +199,14 @@ function render() {
         let tCl = f.turno === "Diurno" ? "dia" : "noite";
         let cardAlerta = (f.obs === "FALTA" || f.obs === "ATESTADO") ? "st-alerta" : "";
         
-        // Render Gestão
         adm.innerHTML += `<div class="card item">
             <div><b>${f.nome}</b><br><small>${f.posto}</small></div>
             <div style="display:flex; gap:5px">
-                <button onclick="editar(${f.id})">✏️</button>
-                <button onclick="excluir(${f.id})">🗑️</button>
+                <button class="btn-status" style="font-size:0.9rem" onclick="editar(${f.id})">✏️</button>
+                <button class="btn-status" style="font-size:0.9rem" onclick="excluir(${f.id})">🗑️</button>
             </div>
         </div>`;
 
-        // Lógica do Painel (Apenas quem está de serviço)
         if(statusObj.servico && (f.nome.toLowerCase().includes(tPainel) || f.posto.toLowerCase().includes(tPainel))) {
             let htmlCard = `<div class="card item ${cardAlerta}">
                 <div style="flex:1">
@@ -209,7 +215,7 @@ function render() {
                     ${f.obs ? `<span class="obs-tag">${f.obs}</span>` : ''}
                 </div>
                 <div style="display:flex; align-items:center; gap:10px">
-                    <button class="btn-status" onclick="registrarOcorrencia(${f.id})">📝</button>
+                    <button class="btn-status no-pdf" onclick="registrarOcorrencia(${f.id})">📝</button>
                     <div class="status-dot ${statusObj.cl}"></div>
                 </div>
             </div>`;
@@ -225,7 +231,6 @@ function render() {
         }
     });
 
-    // Renderizar postos em ordem alfabética
     Object.keys(postosAgrupados).sort().forEach(nomePosto => {
         let section = `<div class="posto-group-title">${nomePosto}</div>`;
         section += postosAgrupados[nomePosto].join('');
@@ -233,13 +238,45 @@ function render() {
     });
 }
 
+function gerarRelatorioPDF() {
+    const elemento = document.getElementById('area-impressao');
+    const data = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+    
+    // Ocultar botões de edição no PDF
+    const botoes = document.querySelectorAll('.no-pdf');
+    botoes.forEach(b => b.style.display = 'none');
+
+    const config = {
+        margin: [10, 10, 10, 10],
+        filename: `Relatorio_Quantica_${data}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(config).from(elemento).save().then(() => {
+        // Mostrar botões novamente
+        botoes.forEach(b => b.style.display = 'block');
+    });
+}
+
+function compartilharRelatorioTexto() {
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    let msg = `*RELATÓRIO QUÂNTICA - ${hoje}*\n\n`;
+    
+    db.sort((a,b) => a.posto.localeCompare(b.posto)).filter(f => calcularStatus(f).servico).forEach(f => {
+        msg += `• *${f.posto}*: ${f.nome} (${f.turno[0]})${f.obs ? ` - [${f.obs}]` : ''}\n`;
+    });
+
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// Funções de salvamento e gestão permanecem iguais à v5.0
 function salvar() {
     let idEdicao = document.getElementById("editId").value;
     let postoSel = document.getElementById("postoSelect").value;
     let postoFinal = (postoSel === "NOVO") ? document.getElementById("postoManual").value.toUpperCase() : postoSel;
-
     if(!postoFinal || !document.getElementById("nome").value) return alert("Preencha Nome e Posto!");
-
     let dados = {
         id: idEdicao ? parseFloat(idEdicao) : Date.now(),
         nome: document.getElementById("nome").value.toUpperCase(),
@@ -249,14 +286,7 @@ function salvar() {
         escala: document.getElementById("escala").value,
         dataInicio: document.getElementById("dataInicio").value
     };
-
-    if(idEdicao) { 
-        let index = db.findIndex(f => f.id == idEdicao); 
-        db[index] = dados; 
-    } else { 
-        db.push(dados); 
-    }
-
+    if(idEdicao) { let index = db.findIndex(f => f.id == idEdicao); db[index] = dados; } else { db.push(dados); }
     localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
     limparForm(); render();
 }
@@ -265,16 +295,13 @@ function editar(id) {
     let f = db.find(item => item.id === id);
     document.getElementById("editId").value = f.id;
     document.getElementById("nome").value = f.nome;
-    
     if(listaPostosPredefinida.includes(f.posto)) {
         document.getElementById("postoSelect").value = f.posto;
-        document.getElementById("postoManual").style.display = "none";
     } else {
         document.getElementById("postoSelect").value = "NOVO";
         document.getElementById("postoManual").value = f.posto;
         document.getElementById("postoManual").style.display = "block";
     }
-
     document.getElementById("cargo").value = f.cargo;
     document.getElementById("turno").value = f.turno;
     document.getElementById("escala").value = f.escala;
@@ -284,14 +311,7 @@ function editar(id) {
 }
 
 function excluir(id) { if(confirm("Excluir?")) { db = db.filter(f => f.id !== id); localStorage.setItem("db_quantica_vFinal", JSON.stringify(db)); render(); } }
-function limparForm() { 
-    document.getElementById("editId").value = ""; 
-    document.getElementById("nome").value = ""; 
-    document.getElementById("postoSelect").value = ""; 
-    document.getElementById("postoManual").value = "";
-    document.getElementById("postoManual").style.display = "none";
-    document.getElementById("btnCancelar").style.display = "none"; 
-}
+function limparForm() { document.getElementById("editId").value = ""; document.getElementById("nome").value = ""; document.getElementById("postoManual").value = ""; document.getElementById("postoManual").style.display = "none"; document.getElementById("btnCancelar").style.display = "none"; }
 function mudarPagina(id, btn) { 
     document.querySelectorAll(".page").forEach(p => p.classList.remove("active")); 
     document.querySelectorAll("nav button").forEach(b => b.classList.remove("active")); 
@@ -299,20 +319,6 @@ function mudarPagina(id, btn) {
     btn.classList.add("active"); 
 }
 
-function compartilharRelatorioTexto() {
-    const hoje = new Date().toLocaleDateString('pt-BR');
-    let msg = `*RELATÓRIO QUÂNTICA - ${hoje}*\n\n`;
-    
-    // Simplificado para exemplo, pode expandir como a versão anterior
-    db.filter(f => calcularStatus(f).servico).forEach(f => {
-        msg += `• *${f.posto}*: ${f.nome} (${f.turno})${f.obs ? ` - [${f.obs}]` : ''}\n`;
-    });
-
-    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
-    window.open(url, '_blank');
-}
-
-// Inicialização
 popularSelectPostos();
 render();
 </script>
