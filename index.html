@@ -15,7 +15,7 @@
         .page{ display:none; }
         .page.active{ display:block; }
         .section-title{ font-size:0.85rem; color:var(--primary); background:#e8eaf6; padding:10px; border-left:5px solid var(--primary); margin:20px 0 10px 0; text-transform:uppercase; font-weight:bold; }
-        .posto-group-title { background: #cfd8dc; padding: 5px 10px; margin-top: 15px; font-weight: bold; font-size: 0.9rem; border-radius: 4px; color: #37474f; }
+        .posto-group-title { background: #cfd8dc; padding: 5px 10px; font-size: 0.8rem; font-weight: bold; border-radius: 4px; margin: 15px 0 5px 0; color: #37474f; }
         .card{ background:white; border-radius:12px; padding:15px; margin-bottom:12px; box-shadow:0 2px 4px rgba(0,0,0,0.1); position: relative; }
         .item{ display:flex; justify-content:space-between; align-items:center; }
         .status-dot{ width:12px; height:12px; border-radius:50%; display:inline-block; }
@@ -31,44 +31,41 @@
         .dia { background: var(--warning); color: #000; }
         .noite { background: #303f9f; color: #fff; }
         .obs-tag { background: #ffd54f; color: #000; font-size: 0.65rem; padding: 2px 5px; border-radius: 3px; font-weight: bold; margin-top: 5px; display: inline-block; }
-        .btn-edit, .btn-del { width: auto; padding: 8px 12px; cursor:pointer; border-radius:5px; }
-        .btn-edit { background: #fff9c4; border: 1px solid #fbc02d; }
-        .btn-del { background: #ffcdd2; border: 1px solid #e53935; }
     </style>
 </head>
 <body>
 
-<header>QUÂNTICA - OPERACIONAL</header>
+<header>QUÂNTICA - OPERACIONAL v5.0</header>
 
 <div class="container">
     <div id="painel" class="page active">
         <div id="dataHoje" style="text-align:center; margin-bottom:10px; font-weight:bold; color:#666"></div>
         <input type="text" id="buscaPainel" placeholder="🔍 Buscar por nome ou posto..." onkeyup="render()" style="margin-bottom:15px">
 
-        <div style="text-align:center; margin-bottom:15px">
-            <span style="background:#e8f5e9; padding:8px 15px; border-radius:20px; color:var(--success); font-weight:bold">
-                👮 Total em Serviço: <span id="qtdServico">0</span>
-            </span>
-        </div>
+        <button onclick="compartilharRelatorioTexto()" class="btn-share">📤 COMPARTILHAR RELATÓRIO</button>
 
-        <button onclick="compartilharRelatorioTexto()" class="btn-share">📤 COMPARTILHAR RELATÓRIO (WHATSAPP)</button>
+        <div class="section-title">👮 Supervisores (Em Serviço)</div>
+        <div id="listaSuperv"></div>
+        
+        <div class="section-title">🚗 Reservas / Base (Em Serviço)</div>
+        <div id="listaReservas"></div>
 
-        <div id="conteudoPainel">
-            </div>
+        <div class="section-title">🏢 Postos (Em Serviço)</div>
+        <div id="listaPostosOrganizados"></div>
     </div>
 
     <div id="gestao" class="page">
         <div class="card">
-            <h3 id="tituloForm">Cadastro / Edição Manual</h3>
+            <h3 id="tituloForm">Cadastro / Edição</h3>
             <input type="hidden" id="editId">
             <input type="text" id="nome" placeholder="Nome Completo">
-            <input type="text" id="matricula" placeholder="Matrícula">
             
-            <div style="display:flex; gap:5px">
-                <select id="postoSelect">
-                    </select>
-                <button onclick="gerenciarPostos()" style="width:50px; background:#eee">➕</button>
-            </div>
+            <label style="font-size: 0.8rem; font-weight: bold;">Selecionar Posto:</label>
+            <select id="postoSelect" onchange="verificarNovoPosto(this.value)">
+                <option value="">-- Selecione um Posto --</option>
+                <option value="NOVO">+ ADICIONAR OU ALTERAR POSTO DA LISTA</option>
+                </select>
+            <input type="text" id="postoManual" placeholder="Digite o nome do posto" style="display:none; border-color: var(--primary);">
             
             <div style="display:flex; gap:5px">
                 <select id="cargo">
@@ -98,7 +95,6 @@
         </div>
 
         <div class="section-title">Efetivo Cadastrado</div>
-        <input type="text" id="buscaGestao" placeholder="🔍 Filtrar lista..." onkeyup="render()" style="margin-bottom:10px">
         <div id="listaAdmin"></div>
     </div>
 </div>
@@ -109,48 +105,39 @@
 </nav>
 
 <script>
-// LISTA INICIAL DE POSTOS
-let postosPadrao = ["10º TABELIONATO","COLÉGIO DOM FELICIANO","COLÉGIO STELLA MARIS","CONDOMINIO EDIFICIO FURRIEL","CONDOMINIO SAINT MORITZ","COND ALPHAVILLE POA","COND CASA 100","COND MARIA VILAC","COND SOLAR SEVILHA","COND TREND NOVA CARLOS GOMES","CONDOMÍNIO REBOUÇAS 180","COND VINTAGE","INSTITUTO RELIGIOSO BARBARA MAIX","JOSAPAR (CAPÃO DA CANOA)","JOSAPAR (MENINO DEUS)","JOSAPAR (TERESÓPOLIS)","JOSAPAR (TORRES)","JOSAPAR (TRAMANDAÍ)","MedCenter","PANVEL – ALVORADA","PANVEL – ANITA GARIBALDI","PANVEL – CASEMIRO DE ABREU","PANVEL – MINI CD CAVALHADA","PANVEL – MINI CD PROTÁSIO ALVES","PANVEL – NILO PEÇANHA","PANVEL – OSCAR PEREIRA","PANVEL – PLÍNIO BRASIL MILANO","QUANTICA – RESERVA","QUÂNTICA – ADMINISTRATIVO","QUÂNTICA – OPERACIONAL","SHOPPING JOÃO PESSOA","VIVA OPEN MALL – MONITORAMENTO","VIVA OPEN MALL – SEGURANÇA","ZAFFARI – CABRAL","ZAFFARI – CAVALHADA","ZAFFARI – CESTTO GRAVATAI","ZAFFARI – CESTTO PROTÁSIO","ZAFFARI – CESTTO VIAMÃO","ZAFFARI – CESTTO WENCESLAU ESCOBAR","ZAFFARI – FERNANDES VIEIRA","ZAFFARI – IPANEMA","ZAFFARI – LINDÓIA","ZAFFARI – CRISTOVÃO COLOMBO"];
+let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
 
-let db = JSON.parse(localStorage.getItem("db_quantica_v5")) || [];
-let listaPostos = JSON.parse(localStorage.getItem("postos_quantica")) || postosPadrao;
+const listaPostosPredefinida = [
+    "10º TABELIONATO", "COLÉGIO DOM FELICIANO", "COLÉGIO STELLA MARIS", "CONDOMINIO EDIFICIO FURRIEL",
+    "CONDOMINIO SAINT MORITZ", "COND ALPHAVILLE POA", "COND CASA 100", "COND MARIA VILAC",
+    "COND SOLAR SEVILHA", "COND TREND NOVA CARLOS GOMES", "CONDOMÍNIO REBOUÇAS 180", "COND VINTAGE",
+    "INSTITUTO RELIGIOSO BARBARA MAIX", "JOSAPAR (CAPÃO DA CANOA)", "JOSAPAR (MENINO DEUS)",
+    "JOSAPAR (TERESÓPOLIS)", "JOSAPAR (TORRES)", "JOSAPAR (TRAMANDAÍ)", "MedCenter",
+    "PANVEL – ALVORADA", "PANVEL – ANITA GARIBALDI", "PANVEL – CASEMIRO DE ABREU",
+    "PANVEL – MINI CD CAVALHADA", "PANVEL – MINI CD PROTÁSIO ALVES", "PANVEL – NILO PEÇANHA",
+    "PANVEL – OSCAR PEREIRA", "PANVEL – PLÍNIO BRASIL MILANO", "QUANTICA – RESERVA",
+    "QUÂNTICA – ADMINISTRATIVO", "QUÂNTICA – OPERACIONAL", "SHOPPING JOÃO PESSOA",
+    "VIVA OPEN MALL – MONITORAMENTO", "VIVA OPEN MALL – SEGURANÇA", "ZAFFARI – CABRAL",
+    "ZAFFARI – CAVALHADA", "ZAFFARI – CESTTO GRAVATAI", "ZAFFARI – CESTTO PROTÁSIO",
+    "ZAFFARI – CESTTO VIAMÃO", "ZAFFARI – CESTTO WENCESLAU ESCOBAR", "ZAFFARI – FERNANDES VIEIRA",
+    "ZAFFARI – IPANEMA", "ZAFFARI – LINDÓIA", "ZAFFARI – CRISTOVÃO COLOMBO"
+];
 
-function popularPostos() {
+function popularSelectPostos() {
     const select = document.getElementById("postoSelect");
-    select.innerHTML = "";
-    listaPostos.sort().forEach(p => {
+    // Mantém as duas primeiras opções e limpa o resto
+    while(select.options.length > 2) select.remove(2);
+    
+    listaPostosPredefinida.sort().forEach(p => {
         let opt = document.createElement("option");
-        opt.value = p; opt.text = p;
+        opt.value = p;
+        opt.text = p;
         select.add(opt);
     });
 }
 
-function gerenciarPostos() {
-    let acao = prompt("1 - Adicionar Novo Posto\n2 - Editar Posto Existente\n3 - Excluir Posto");
-    if(acao === "1") {
-        let novo = prompt("Nome do novo posto:").toUpperCase();
-        if(novo) { listaPostos.push(novo); salvarPostos(); }
-    } else if(acao === "2") {
-        let antigo = document.getElementById("postoSelect").value;
-        let novo = prompt("Alterar " + antigo + " para:", antigo).toUpperCase();
-        if(novo) {
-            listaPostos = listaPostos.map(p => p === antigo ? novo : p);
-            db.forEach(f => { if(f.posto === antigo) f.posto = novo; });
-            salvarPostos();
-            localStorage.setItem("db_quantica_v5", JSON.stringify(db));
-        }
-    } else if(acao === "3") {
-        let alvo = document.getElementById("postoSelect").value;
-        if(confirm("Excluir posto " + alvo + "?")) {
-            listaPostos = listaPostos.filter(p => p !== alvo);
-            salvarPostos();
-        }
-    }
-}
-
-function salvarPostos() {
-    localStorage.setItem("postos_quantica", JSON.stringify(listaPostos));
-    popularPostos();
+function verificarNovoPosto(val) {
+    document.getElementById("postoManual").style.display = (val === "NOVO") ? "block" : "none";
 }
 
 function calcularStatus(f) {
@@ -163,7 +150,7 @@ function calcularStatus(f) {
         let diaCiclo = diff % 5;
         if(diaCiclo === 0 || diaCiclo === 1) return {txt: "Serviço", cl: "st-servico", servico: true};
         if(diaCiclo === 2) return {txt: "Folga", cl: "st-folga", servico: false};
-        return {txt: "Reserva", cl: "st-reserva", servico: true};
+        return {txt: "RESERVA", cl: "st-reserva", servico: true};
     }
 
     let emServico = false;
@@ -178,53 +165,47 @@ function calcularStatus(f) {
     return emServico ? {txt: "Serviço", cl: "st-servico", servico: true} : {txt: "Folga", cl: "st-folga", servico: false};
 }
 
+function registrarOcorrencia(id) {
+    const f = db.find(x => x.id === id);
+    const tipo = prompt(`Ocorrência para ${f.nome}:\n1-Falta, 2-Atestado, 3-Cob. Posto, 4-Limpar`);
+    if(tipo==="1") f.obs="FALTA"; else if(tipo==="2") f.obs="ATESTADO"; else if(tipo==="3") f.obs="COB. POSTO"; else if(tipo==="4") delete f.obs;
+    localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
+    render();
+}
+
 function render() {
     let tPainel = document.getElementById("buscaPainel").value.toLowerCase();
-    let tGestao = document.getElementById("buscaGestao").value.toLowerCase();
-    let conteudoPainel = document.getElementById("conteudoPainel");
+    let sup = document.getElementById("listaSuperv");
+    let res = document.getElementById("listaReservas");
+    let posOrg = document.getElementById("listaPostosOrganizados");
     let adm = document.getElementById("listaAdmin");
     
-    conteudoPainel.innerHTML = ""; adm.innerHTML = "";
+    sup.innerHTML = ""; res.innerHTML = ""; posOrg.innerHTML = ""; adm.innerHTML = "";
     document.getElementById("dataHoje").innerText = "HOJE: " + new Date().toLocaleDateString('pt-BR');
     
-    let totalServico = 0;
-    let postosComGente = {};
+    // Agrupamento por postos para o Painel
+    let postosAgrupados = {};
 
-    // Organizar dados para o Painel
-    db.forEach(f => {
+    db.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(f => {
         let statusObj = calcularStatus(f);
-        if(statusObj.servico) {
-            if(f.nome.toLowerCase().includes(tPainel) || f.posto.toLowerCase().includes(tPainel)) {
-                if(!postosComGente[f.posto]) postosComGente[f.posto] = [];
-                postosComGente[f.posto].push(f);
-                totalServico++;
-            }
-        }
-
+        let tCl = f.turno === "Diurno" ? "dia" : "noite";
+        let cardAlerta = (f.obs === "FALTA" || f.obs === "ATESTADO") ? "st-alerta" : "";
+        
         // Render Gestão
-        if(f.nome.toLowerCase().includes(tGestao) || f.posto.toLowerCase().includes(tGestao)) {
-            adm.innerHTML += `<div class="card item">
-                <div><b>${f.nome}</b><br><small>${f.posto} (${f.turno})</small></div>
-                <div style="display:flex; gap:5px">
-                    <button class="btn-edit" onclick="editar(${f.id})">✏️</button>
-                    <button class="btn-del" onclick="excluir(${f.id})">🗑️</button>
-                </div>
-            </div>`;
-        }
-    });
+        adm.innerHTML += `<div class="card item">
+            <div><b>${f.nome}</b><br><small>${f.posto}</small></div>
+            <div style="display:flex; gap:5px">
+                <button onclick="editar(${f.id})">✏️</button>
+                <button onclick="excluir(${f.id})">🗑️</button>
+            </div>
+        </div>`;
 
-    // Renderizar Painel Organizado por Postos (Ordem Alfabética)
-    Object.keys(postosComGente).sort().forEach(postoNome => {
-        let htmlPosto = `<div class="posto-group-title">${postoNome}</div>`;
-        postosComGente[postoNome].forEach(f => {
-            let statusObj = calcularStatus(f);
-            let tCl = f.turno === "Diurno" ? "dia" : "noite";
-            let cardAlerta = (f.obs === "FALTA" || f.obs === "ATESTADO") ? "st-alerta" : "";
-            
-            htmlPosto += `<div class="card item ${cardAlerta}" style="margin-top:5px">
+        // Lógica do Painel (Apenas quem está de serviço)
+        if(statusObj.servico && (f.nome.toLowerCase().includes(tPainel) || f.posto.toLowerCase().includes(tPainel))) {
+            let htmlCard = `<div class="card item ${cardAlerta}">
                 <div style="flex:1">
                     <b>${f.nome}</b> <span class="badge-turno ${tCl}">${f.turno[0]}</span><br>
-                    <small>Status: ${statusObj.txt}</small><br>
+                    <small>Status: ${statusObj.txt} | Turno: ${f.turno}</small><br>
                     ${f.obs ? `<span class="obs-tag">${f.obs}</span>` : ''}
                 </div>
                 <div style="display:flex; align-items:center; gap:10px">
@@ -232,39 +213,51 @@ function render() {
                     <div class="status-dot ${statusObj.cl}"></div>
                 </div>
             </div>`;
-        });
-        conteudoPainel.innerHTML += htmlPosto;
+
+            if(f.cargo === "Fiscal" || f.cargo === "Inspetor") {
+                sup.innerHTML += htmlCard;
+            } else if(f.cargo === "Reserva" || statusObj.cl === "st-reserva") {
+                res.innerHTML += htmlCard;
+            } else {
+                if(!postosAgrupados[f.posto]) postosAgrupados[f.posto] = [];
+                postosAgrupados[f.posto].push(htmlCard);
+            }
+        }
     });
 
-    document.getElementById("qtdServico").innerText = totalServico;
-}
-
-function registrarOcorrencia(id) {
-    const f = db.find(x => x.id === id);
-    const tipo = prompt(`Ocorrência para ${f.nome}:\n1-Falta, 2-Atestado, 3-Cobrindo Postos, 4-Limpar`);
-    if(tipo==="1") f.obs="FALTA"; 
-    else if(tipo==="2") f.obs="ATESTADO"; 
-    else if(tipo==="3") f.obs="COBRINDO POSTO"; 
-    else if(tipo==="4") delete f.obs;
-    localStorage.setItem("db_quantica_v5", JSON.stringify(db));
-    render();
+    // Renderizar postos em ordem alfabética
+    Object.keys(postosAgrupados).sort().forEach(nomePosto => {
+        let section = `<div class="posto-group-title">${nomePosto}</div>`;
+        section += postosAgrupados[nomePosto].join('');
+        posOrg.innerHTML += section;
+    });
 }
 
 function salvar() {
     let idEdicao = document.getElementById("editId").value;
+    let postoSel = document.getElementById("postoSelect").value;
+    let postoFinal = (postoSel === "NOVO") ? document.getElementById("postoManual").value.toUpperCase() : postoSel;
+
+    if(!postoFinal || !document.getElementById("nome").value) return alert("Preencha Nome e Posto!");
+
     let dados = {
         id: idEdicao ? parseFloat(idEdicao) : Date.now(),
         nome: document.getElementById("nome").value.toUpperCase(),
-        matricula: document.getElementById("matricula").value.toUpperCase(),
-        posto: document.getElementById("postoSelect").value,
+        posto: postoFinal,
         cargo: document.getElementById("cargo").value,
         turno: document.getElementById("turno").value,
         escala: document.getElementById("escala").value,
         dataInicio: document.getElementById("dataInicio").value
     };
-    if(!dados.nome || !dados.dataInicio) return alert("Preencha Nome e Data!");
-    if(idEdicao) { let index = db.findIndex(f => f.id == idEdicao); db[index] = dados; } else { db.push(dados); }
-    localStorage.setItem("db_quantica_v5", JSON.stringify(db));
+
+    if(idEdicao) { 
+        let index = db.findIndex(f => f.id == idEdicao); 
+        db[index] = dados; 
+    } else { 
+        db.push(dados); 
+    }
+
+    localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
     limparForm(); render();
 }
 
@@ -272,42 +265,55 @@ function editar(id) {
     let f = db.find(item => item.id === id);
     document.getElementById("editId").value = f.id;
     document.getElementById("nome").value = f.nome;
-    document.getElementById("matricula").value = f.matricula || "";
-    document.getElementById("postoSelect").value = f.posto;
+    
+    if(listaPostosPredefinida.includes(f.posto)) {
+        document.getElementById("postoSelect").value = f.posto;
+        document.getElementById("postoManual").style.display = "none";
+    } else {
+        document.getElementById("postoSelect").value = "NOVO";
+        document.getElementById("postoManual").value = f.posto;
+        document.getElementById("postoManual").style.display = "block";
+    }
+
     document.getElementById("cargo").value = f.cargo;
     document.getElementById("turno").value = f.turno;
     document.getElementById("escala").value = f.escala;
     document.getElementById("dataInicio").value = f.dataInicio;
-    document.getElementById("tituloForm").innerText = "Editando Funcionário";
     document.getElementById("btnCancelar").style.display = "block";
     mudarPagina('gestao', document.getElementById('btnGestao'));
 }
 
-function excluir(id) { if(confirm("Excluir funcionário?")) { db = db.filter(f => f.id !== id); localStorage.setItem("db_quantica_v5", JSON.stringify(db)); render(); } }
-function limparForm() { document.getElementById("editId").value = ""; document.getElementById("nome").value = ""; document.getElementById("matricula").value = ""; document.getElementById("dataInicio").value = ""; document.getElementById("tituloForm").innerText = "Cadastro Manual"; document.getElementById("btnCancelar").style.display = "none"; }
-function mudarPagina(id, btn) { document.querySelectorAll(".page").forEach(p => p.classList.remove("active")); document.querySelectorAll("nav button").forEach(b => b.classList.remove("active")); document.getElementById(id).classList.add("active"); btn.classList.add("active"); render(); }
+function excluir(id) { if(confirm("Excluir?")) { db = db.filter(f => f.id !== id); localStorage.setItem("db_quantica_vFinal", JSON.stringify(db)); render(); } }
+function limparForm() { 
+    document.getElementById("editId").value = ""; 
+    document.getElementById("nome").value = ""; 
+    document.getElementById("postoSelect").value = ""; 
+    document.getElementById("postoManual").value = "";
+    document.getElementById("postoManual").style.display = "none";
+    document.getElementById("btnCancelar").style.display = "none"; 
+}
+function mudarPagina(id, btn) { 
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active")); 
+    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active")); 
+    document.getElementById(id).classList.add("active"); 
+    btn.classList.add("active"); 
+}
 
 function compartilharRelatorioTexto() {
     const hoje = new Date().toLocaleDateString('pt-BR');
-    const emServico = db.filter(f => calcularStatus(f).servico).sort((a,b) => a.posto.localeCompare(b.posto));
+    let msg = `*RELATÓRIO QUÂNTICA - ${hoje}*\n\n`;
     
-    let msg = `*QUÂNTICA - RELATÓRIO OPERACIONAL*\n📅 Data: ${hoje}\n\n`;
-    let postoAtual = "";
-
-    emServico.forEach(f => {
-        if(f.posto !== postoAtual) {
-            postoAtual = f.posto;
-            msg += `\n*${postoAtual}*\n`;
-        }
-        msg += `• ${f.nome} (${f.turno[0]}) ${f.obs ? `[${f.obs}]` : ''}\n`;
+    // Simplificado para exemplo, pode expandir como a versão anterior
+    db.filter(f => calcularStatus(f).servico).forEach(f => {
+        msg += `• *${f.posto}*: ${f.nome} (${f.turno})${f.obs ? ` - [${f.obs}]` : ''}\n`;
     });
 
-    msg += `\n_Total: ${emServico.length}_`;
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
 }
 
-// Início
-popularPostos();
+// Inicialização
+popularSelectPostos();
 render();
 </script>
 </body>
