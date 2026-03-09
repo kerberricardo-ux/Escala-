@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quântica - Gestão Operacional v3.5</title>
+    <title>Quântica - Gestão Operacional v3.6</title>
     <style>
         :root{ --primary:#1a237e; --secondary:#0d47a1; --success:#2e7d32; --danger:#c62828; --bg:#f5f5f5; --white:#ffffff; }
         body{ font-family:'Segoe UI',sans-serif; margin:0; background:var(--bg); padding-bottom:90px; }
@@ -38,7 +38,7 @@
 <div class="container">
     <div id="painel" class="page active">
         <div id="dataHoje" style="text-align:center; margin-bottom:10px; font-weight:bold; color:#666"></div>
-        <input type="text" id="buscaPainel" placeholder="🔍 Buscar fiscal ou reserva..." onkeyup="render()" style="margin-bottom:15px">
+        <input type="text" id="buscaPainel" placeholder="🔍 Buscar por nome ou posto..." onkeyup="render()" style="margin-bottom:15px">
 
         <div style="text-align:center; margin-bottom:15px">
             <span style="background:#e8f5e9; padding:8px 15px; border-radius:20px; color:var(--success); font-weight:bold">
@@ -46,13 +46,16 @@
             </span>
         </div>
 
-        <button onclick="gerarRelatorioPDF()" class="btn-p">📄 GERAR RELATÓRIO PDF (EFETIVO HOJE)</button>
+        <button onclick="gerarRelatorioPDF()" class="btn-p">📄 GERAR E COMPARTILHAR RELATÓRIO</button>
 
-        <div class="section-title">👮 Supervisão (Em Serviço)</div>
+        <div class="section-title">👮 Supervisores (Em Serviço)</div>
         <div id="listaSuperv"></div>
         
         <div class="section-title">🚗 Reservas (Em Serviço)</div>
         <div id="listaReservas"></div>
+
+        <div class="section-title">🏢 Postos (Em Serviço)</div>
+        <div id="listaPostos"></div>
     </div>
 
     <div id="gestao" class="page">
@@ -81,6 +84,7 @@
             <h3 id="tituloForm">Cadastro / Edição Manual</h3>
             <input type="hidden" id="editId">
             <input type="text" id="nome" placeholder="Nome Completo">
+            <input type="text" id="matricula" placeholder="Matrícula">
             <input type="text" id="posto" placeholder="Nome do Posto">
             
             <div style="display:flex; gap:5px">
@@ -110,7 +114,7 @@
             <button id="btnCancelar" style="display:none; background:#eee; border:none; margin-top:5px" onclick="limparForm()">Cancelar</button>
         </div>
 
-        <div class="section-title">Efetivo Cadastrado (Geral)</div>
+        <div class="section-title">Efetivo Cadastrado (Geral - Ordem Alfabética)</div>
         <input type="text" id="buscaGestao" placeholder="🔍 Filtrar lista..." onkeyup="render()" style="margin-bottom:10px">
         <div id="listaAdmin"></div>
     </div>
@@ -144,6 +148,7 @@ function importarArquivoTexto(input, limparTudo) {
             const colunas = linha.split(';');
             if (colunas.length >= 3) {
                 const nomeS = colunas[0]?.trim().toUpperCase();
+                const matriculaS = colunas[1]?.trim().toUpperCase() || "N/A";
                 const postoS = colunas[2]?.trim().toUpperCase();
                 const statusS = colunas[3]?.trim().toUpperCase() || "ATIVO";
 
@@ -155,6 +160,7 @@ function importarArquivoTexto(input, limparTudo) {
                     novosRegistros.push({
                         id: Date.now() + index + Math.random(),
                         nome: nomeS,
+                        matricula: matriculaS,
                         posto: postoS,
                         cargo: cargoAuto, 
                         turno: "Diurno",
@@ -207,6 +213,7 @@ function salvar() {
     let dados = {
         id: idEdicao ? parseFloat(idEdicao) : Date.now(),
         nome: document.getElementById("nome").value.toUpperCase(),
+        matricula: document.getElementById("matricula").value.toUpperCase(),
         posto: document.getElementById("posto").value.toUpperCase(),
         cargo: document.getElementById("cargo").value,
         turno: document.getElementById("turno").value,
@@ -229,6 +236,7 @@ function editar(id) {
     let f = db.find(item => item.id === id);
     document.getElementById("editId").value = f.id;
     document.getElementById("nome").value = f.nome;
+    document.getElementById("matricula").value = f.matricula || "";
     document.getElementById("posto").value = f.posto;
     document.getElementById("cargo").value = f.cargo;
     document.getElementById("turno").value = f.turno;
@@ -250,6 +258,7 @@ function excluir(id) {
 function limparForm() {
     document.getElementById("editId").value = "";
     document.getElementById("nome").value = "";
+    document.getElementById("matricula").value = "";
     document.getElementById("posto").value = "";
     document.getElementById("dataInicio").value = "";
     document.getElementById("tituloForm").innerText = "Cadastro / Edição Manual";
@@ -276,31 +285,42 @@ function importarBackup(input) {
 
 function gerarRelatorioPDF() {
     const hoje = new Date().toLocaleDateString('pt-BR');
-    const emServico = db.filter(f => calcularStatus(f).txt === "Serviço");
-    let win = window.open('', '', 'width=800,height=600');
-    let html = `<html><head><style>
-        body{font-family:sans-serif; padding:20px}
-        h1{color:#1a237e; border-bottom:2px solid #1a237e; text-align:center}
-        table{width:100%; border-collapse:collapse; margin-bottom:20px}
-        th,td{border:1px solid #ddd; padding:8px; text-align:left}
+    const emServico = db.filter(f => calcularStatus(f).txt === "Serviço").sort((a,b) => a.nome.localeCompare(b.nome));
+    
+    let win = window.open('', '_blank');
+    let html = `<html><head><title>Relatório Quântica - ${hoje}</title><style>
+        body{font-family:sans-serif; padding:20px; color: #333;}
+        h1{color:#1a237e; border-bottom:3px solid #1a237e; text-align:center; padding-bottom: 10px;}
+        h2{background: #e8eaf6; padding: 8px; font-size: 1.1rem; border-left: 5px solid #1a237e;}
+        table{width:100%; border-collapse:collapse; margin-bottom:25px}
+        th,td{border:1px solid #ccc; padding:10px; text-align:left}
+        th{background:#f0f0f0}
     </style></head><body>
-        <h1>Relatório Operacional - ${hoje}</h1>
-        <h2>Supervisão/Fiscais</h2>
-        <table><tr><th>Nome</th><th>Posto</th></tr>
-        ${emServico.filter(f=>f.cargo==='Fiscal'||f.cargo==='Inspetor').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td></tr>`).join('')}
+        <h1>Quântica - Efetivo em Serviço (${hoje})</h1>
+        
+        <h2>SUPERVISORES / FISCAIS</h2>
+        <table><tr><th>Matrícula</th><th>Nome</th><th>Posto</th></tr>
+        ${emServico.filter(f=>f.cargo==='Fiscal'||f.cargo==='Inspetor').map(f=>`<tr><td>${f.matricula || '---'}</td><td>${f.nome}</td><td>${f.posto}</td></tr>`).join('')}
         </table>
-        <h2>Reservas</h2>
-        <table><tr><th>Nome</th><th>Posto</th></tr>
-        ${emServico.filter(f=>f.cargo==='Reserva').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td></tr>`).join('')}
+
+        <h2>RESERVAS</h2>
+        <table><tr><th>Matrícula</th><th>Nome</th><th>Posto</th></tr>
+        ${emServico.filter(f=>f.cargo==='Reserva').map(f=>`<tr><td>${f.matricula || '---'}</td><td>${f.nome}</td><td>${f.posto}</td></tr>`).join('')}
         </table>
-        <h2>Efetivo Geral (ASP)</h2>
-        <table><tr><th>Nome</th><th>Posto</th></tr>
-        ${emServico.filter(f=>f.cargo==='ASP').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td></tr>`).join('')}
+
+        <h2>EFETIVO NOS POSTOS (ASP)</h2>
+        <table><tr><th>Matrícula</th><th>Nome</th><th>Posto</th></tr>
+        ${emServico.filter(f=>f.cargo==='ASP').map(f=>`<tr><td>${f.matricula || '---'}</td><td>${f.nome}</td><td>${f.posto}</td></tr>`).join('')}
         </table>
     </body></html>`;
+    
     win.document.write(html);
     win.document.close();
-    setTimeout(() => { win.print(); win.close(); }, 500);
+    
+    // Pequeno delay para garantir carregamento antes de imprimir
+    win.onload = function() {
+        win.print();
+    };
 }
 
 function render() {
@@ -308,12 +328,16 @@ function render() {
     let tGestao = document.getElementById("buscaGestao").value.toLowerCase();
     let sup = document.getElementById("listaSuperv");
     let res = document.getElementById("listaReservas");
+    let pos = document.getElementById("listaPostos");
     let adm = document.getElementById("listaAdmin");
     
-    sup.innerHTML = ""; res.innerHTML = ""; adm.innerHTML = "";
+    sup.innerHTML = ""; res.innerHTML = ""; pos.innerHTML = ""; adm.innerHTML = "";
     document.getElementById("dataHoje").innerText = "HOJE: " + new Date().toLocaleDateString('pt-BR');
     
     let totalServico = 0;
+
+    // Ordena o banco por ordem alfabética antes de renderizar
+    db.sort((a, b) => a.nome.localeCompare(b.nome));
 
     db.forEach(f => {
         let statusObj = calcularStatus(f);
@@ -322,18 +346,19 @@ function render() {
 
         if(statusObj.txt === "Serviço" && (f.nome.toLowerCase().includes(tPainel) || f.posto.toLowerCase().includes(tPainel))) {
             let card = `<div class="card item">
-                <div><b>${f.nome}</b> <span class="badge-turno ${tCl}">${f.turno[0]}</span><br><small>${f.posto}</small></div>
+                <div><b>${f.nome}</b> <span class="badge-turno ${tCl}">${f.turno[0]}</span><br><small>${f.posto} | Mat: ${f.matricula || 'N/A'}</small></div>
                 <div class="status-dot ${statusObj.cl}"></div>
             </div>`;
             
             if(f.cargo === "Fiscal" || f.cargo === "Inspetor") sup.innerHTML += card;
             else if(f.cargo === "Reserva") res.innerHTML += card;
+            else pos.innerHTML += card; // Adicionado na nova aba de Postos
         }
 
         if(f.nome.toLowerCase().includes(tGestao) || f.posto.toLowerCase().includes(tGestao)) {
             let sGeral = calcularStatus(f);
             adm.innerHTML += `<div class="card item">
-                <div><b>${f.nome}</b><br><small>${f.posto} | ${f.cargo} (${sGeral.txt})</small></div>
+                <div><b>${f.nome}</b><br><small>Mat: ${f.matricula || '---'} | ${f.posto} | ${f.cargo} (${sGeral.txt})</small></div>
                 <div style="display:flex; gap:5px">
                     <button class="btn-edit" onclick="editar(${f.id})">✏️</button>
                     <button class="btn-del" onclick="excluir(${f.id})">🗑️</button>
