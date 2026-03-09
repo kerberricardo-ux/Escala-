@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quântica - Gestão Operacional v3.8</title>
+    <title>Quântica - Gestão Operacional v3.9</title>
     <style>
         :root{ --primary:#1a237e; --secondary:#0d47a1; --success:#2e7d32; --danger:#c62828; --warning:#fbc02d; --info:#0288d1; --bg:#f5f5f5; --white:#ffffff; }
         body{ font-family:'Segoe UI',sans-serif; margin:0; background:var(--bg); padding-bottom:90px; }
@@ -15,22 +15,25 @@
         .page{ display:none; }
         .page.active{ display:block; }
         .section-title{ font-size:0.85rem; color:var(--primary); background:#e8eaf6; padding:10px; border-left:5px solid var(--primary); margin:20px 0 10px 0; text-transform:uppercase; font-weight:bold; }
-        .card{ background:white; border-radius:12px; padding:15px; margin-bottom:12px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+        .card{ background:white; border-radius:12px; padding:15px; margin-bottom:12px; box-shadow:0 2px 4px rgba(0,0,0,0.1); position: relative; }
         .item{ display:flex; justify-content:space-between; align-items:center; }
         .status-dot{ width:12px; height:12px; border-radius:50%; display:inline-block; }
         .st-servico{ background:var(--success); }
         .st-reserva{ background:var(--info); } 
         .st-folga{ background:#9e9e9e; }
+        .st-alerta{ background:var(--danger) !important; color: white !important; }
         input, select, button { width:100%; padding:12px; margin:5px 0; border-radius:8px; border:1px solid #ccc; box-sizing: border-box; }
         .btn-p{ background:var(--primary); color:white; font-weight:bold; cursor:pointer; border:none; }
         .btn-import{ background:#eceff1; color:#455a64; border:1px dashed #455a64; cursor:pointer;}
         .btn-update{ background:#fff3e0; color:#e65100; border:1px solid #ffb74d; font-weight: bold; cursor:pointer;}
         .btn-edit { background: #fff9c4; border: 1px solid #fbc02d; width: auto; padding: 8px 12px; cursor:pointer; border-radius:5px;}
         .btn-del { background: #ffcdd2; border: 1px solid #e53935; width: auto; padding: 8px 12px; cursor:pointer; border-radius:5px;}
+        .btn-status { background: #f0f0f0; border: 1px solid #ccc; width: auto; padding: 8px 12px; cursor:pointer; border-radius:5px; font-size: 1.2rem; }
         .badge-turno { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; color: white; margin-left: 5px; }
         .dia { background: var(--warning); color: #000; }
         .noite { background: #303f9f; color: #fff; }
         .label-status { font-size: 0.7rem; font-weight: bold; text-transform: uppercase; margin-top: 4px; display: block; }
+        .obs-tag { background: #ffd54f; color: #000; font-size: 0.65rem; padding: 2px 5px; border-radius: 3px; font-weight: bold; margin-top: 5px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -151,6 +154,20 @@ function calcularStatus(f) {
     return emServico ? {txt: "Serviço", cl: "st-servico", servico: true} : {txt: "Folga", cl: "st-folga", servico: false};
 }
 
+function registrarOcorrencia(id) {
+    const f = db.find(x => x.id === id);
+    const tipo = prompt(`Registrar ocorrência para ${f.nome}:\n1 - Falta\n2 - Atestado\n3 - Cobrindo Posto\n4 - Limpar/Normal`);
+    
+    if (tipo === "1") f.obs = "FALTA";
+    else if (tipo === "2") f.obs = "ATESTADO";
+    else if (tipo === "3") f.obs = "COBRINDO POSTO";
+    else if (tipo === "4") delete f.obs;
+    else return;
+
+    localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
+    render();
+}
+
 function render() {
     let tPainel = document.getElementById("buscaPainel").value.toLowerCase();
     let tGestao = document.getElementById("buscaGestao").value.toLowerCase();
@@ -168,16 +185,22 @@ function render() {
     db.forEach(f => {
         let statusObj = calcularStatus(f);
         let tCl = f.turno === "Diurno" ? "dia" : "noite";
+        let cardAlerta = (f.obs === "FALTA" || f.obs === "ATESTADO") ? "st-alerta" : "";
+        
         if(statusObj.servico) totalServico++;
 
         if(statusObj.servico && (f.nome.toLowerCase().includes(tPainel) || f.posto.toLowerCase().includes(tPainel))) {
-            let card = `<div class="card item">
-                <div>
+            let card = `<div class="card item ${cardAlerta}">
+                <div style="flex:1">
                     <b>${f.nome}</b> <span class="badge-turno ${tCl}">${f.turno[0]}</span><br>
                     <small>${f.posto} | Mat: ${f.matricula || 'N/A'}</small>
-                    <span class="label-status" style="color:${statusObj.cl === 'st-reserva' ? '#0288d1' : '#2e7d32'}">${statusObj.txt}</span>
+                    <span class="label-status" style="color:${cardAlerta ? 'white' : (statusObj.cl === 'st-reserva' ? '#0288d1' : '#2e7d32')}">${statusObj.txt}</span>
+                    ${f.obs ? `<span class="obs-tag">${f.obs}</span>` : ''}
                 </div>
-                <div class="status-dot ${statusObj.cl}"></div>
+                <div style="display:flex; align-items:center; gap:10px">
+                    <button class="btn-status" onclick="registrarOcorrencia(${f.id})">📝</button>
+                    <div class="status-dot ${statusObj.cl}"></div>
+                </div>
             </div>`;
             
             if(f.cargo === "Fiscal" || f.cargo === "Inspetor") sup.innerHTML += card;
@@ -199,69 +222,39 @@ function render() {
     document.getElementById("qtdServico").innerText = totalServico;
 }
 
-// CORREÇÃO DO RELATÓRIO PARA WEB2APP
 function gerarRelatorioPDF() {
     const hoje = new Date().toLocaleDateString('pt-BR');
     const emServico = db.filter(f => calcularStatus(f).servico).sort((a,b) => a.nome.localeCompare(b.nome));
-    
-    // Abrir janela primeiro (essencial para evitar bloqueio de pop-up no mobile)
     let win = window.open('', '_blank');
+    if (!win) return alert("Bloqueio de pop-up detectado.");
+
+    let html = `<html><head><title>Relatório - ${hoje}</title><style>
+        body{font-family:sans-serif; padding:20px;} h1{color:#1a237e; border-bottom:3px solid #1a237e; text-align:center;} 
+        h2{background: #e8eaf6; padding: 10px; border-left: 5px solid #1a237e; margin-top:20px;} 
+        table{width:100%; border-collapse:collapse; margin-bottom:20px} 
+        th,td{border:1px solid #ccc; padding:10px; text-align:left}
+        .alerta{color:red; font-weight:bold;}
+    </style></head><body>
+    <h1>Quântica - Efetivo em Serviço (${hoje})</h1>
     
-    if (!win) {
-        alert("O relatório foi bloqueado. Por favor, permita pop-ups nas configurações do seu navegador/app.");
-        return;
-    }
+    <h2>SUPERVISORES E FISCAIS</h2>
+    <table><tr><th>Nome</th><th>Posto</th><th>Ocorrência</th></tr>
+    ${emServico.filter(f=>f.cargo==='Fiscal'||f.cargo==='Inspetor').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td><td class="alerta">${f.obs || '-'}</td></tr>`).join('')}</table>
 
-    let html = `
-    <html>
-    <head>
-        <title>Relatório Quântica - ${hoje}</title>
-        <style>
-            body{font-family:sans-serif; padding:20px; color:#333;} 
-            h1{color:#1a237e; border-bottom:3px solid #1a237e; text-align:center; margin-bottom:30px;} 
-            h2{background: #e8eaf6; padding: 10px; font-size: 1.1rem; border-left: 5px solid #1a237e; margin-top:20px;} 
-            table{width:100%; border-collapse:collapse; margin-bottom:25px} 
-            th,td{border:1px solid #ccc; padding:10px; text-align:left} 
-            th{background:#f0f0f0}
-        </style>
-    </head>
-    <body>
-        <h1>Relatório de Efetivo em Serviço (${hoje})</h1>
-        
-        <h2>SUPERVISORES / FISCAIS</h2>
-        <table>
-            <tr><th>Nome</th><th>Posto</th></tr>
-            ${emServico.filter(f=>f.cargo==='Fiscal'||f.cargo==='Inspetor').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td></tr>`).join('')}
-        </table>
+    <h2>RESERVAS E BASE</h2>
+    <table><tr><th>Nome</th><th>Posto</th><th>Ocorrência</th></tr>
+    ${emServico.filter(f=>f.cargo==='Reserva' || calcularStatus(f).cl === 'st-reserva').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td><td class="alerta">${f.obs || '-'}</td></tr>`).join('')}</table>
 
-        <h2>RESERVAS E BASE</h2>
-        <table>
-            <tr><th>Nome</th><th>Posto</th><th>Status</th></tr>
-            ${emServico.filter(f=>f.cargo==='Reserva' || calcularStatus(f).cl === 'st-reserva').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td><td>${calcularStatus(f).txt}</td></tr>`).join('')}
-        </table>
+    <h2>EFETIVO NOS POSTOS</h2>
+    <table><tr><th>Nome</th><th>Posto</th><th>Ocorrência</th></tr>
+    ${emServico.filter(f=>f.cargo==='ASP' && calcularStatus(f).cl !== 'st-reserva').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td><td class="alerta">${f.obs || '-'}</td></tr>`).join('')}</table>
+    </body></html>`;
 
-        <h2>EFETIVO NOS POSTOS (ASP)</h2>
-        <table>
-            <tr><th>Nome</th><th>Posto</th></tr>
-            ${emServico.filter(f=>f.cargo==='ASP' && calcularStatus(f).cl !== 'st-reserva').map(f=>`<tr><td>${f.nome}</td><td>${f.posto}</td></tr>`).join('')}
-        </table>
-
-        <div style="margin-top:40px; text-align:center; font-size:0.8rem; color:#888;">
-            Gerado automaticamente por Quântica Gestão Operacional
-        </div>
-    </body>
-    </html>`;
-
-    win.document.write(html);
-    win.document.close();
-
-    // Pequeno delay para garantir que o WebView processe o HTML antes da impressão
-    setTimeout(() => {
-        win.print();
-    }, 500);
+    win.document.write(html); win.document.close();
+    setTimeout(() => { win.print(); }, 500);
 }
 
-// Funções auxiliares mantidas
+// Funções padrão mantidas
 function acionarAtualizacaoTotal() { if(confirm("Isso apagará a lista atual. Continuar?")) document.getElementById('fileInputUpdate').click(); }
 function mudarPagina(id, btn) { document.querySelectorAll(".page").forEach(p => p.classList.remove("active")); document.querySelectorAll("nav button").forEach(b => b.classList.remove("active")); document.getElementById(id).classList.add("active"); btn.classList.add("active"); render(); }
 function salvar() {
