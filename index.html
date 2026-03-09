@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quântica - Gestão Operacional v4.0</title>
+    <title>Quântica - Gestão Operacional v5.0</title>
     <style>
         :root{ --primary:#1a237e; --secondary:#0d47a1; --success:#2e7d32; --danger:#c62828; --warning:#fbc02d; --info:#0288d1; --bg:#f5f5f5; --white:#ffffff; }
         body{ font-family:'Segoe UI',sans-serif; margin:0; background:var(--bg); padding-bottom:90px; }
@@ -15,6 +15,7 @@
         .page{ display:none; }
         .page.active{ display:block; }
         .section-title{ font-size:0.85rem; color:var(--primary); background:#e8eaf6; padding:10px; border-left:5px solid var(--primary); margin:20px 0 10px 0; text-transform:uppercase; font-weight:bold; }
+        .posto-group-title { background: #cfd8dc; padding: 5px 10px; margin-top: 15px; font-weight: bold; font-size: 0.9rem; border-radius: 4px; color: #37474f; }
         .card{ background:white; border-radius:12px; padding:15px; margin-bottom:12px; box-shadow:0 2px 4px rgba(0,0,0,0.1); position: relative; }
         .item{ display:flex; justify-content:space-between; align-items:center; }
         .status-dot{ width:12px; height:12px; border-radius:50%; display:inline-block; }
@@ -25,16 +26,14 @@
         input, select, button { width:100%; padding:12px; margin:5px 0; border-radius:8px; border:1px solid #ccc; box-sizing: border-box; }
         .btn-p{ background:var(--primary); color:white; font-weight:bold; cursor:pointer; border:none; }
         .btn-share{ background:var(--success); color:white; font-weight:bold; cursor:pointer; border:none; margin-top:5px; }
-        .btn-import{ background:#eceff1; color:#455a64; border:1px dashed #455a64; cursor:pointer;}
-        .btn-update{ background:#fff3e0; color:#e65100; border:1px solid #ffb74d; font-weight: bold; cursor:pointer;}
-        .btn-edit { background: #fff9c4; border: 1px solid #fbc02d; width: auto; padding: 8px 12px; cursor:pointer; border-radius:5px;}
-        .btn-del { background: #ffcdd2; border: 1px solid #e53935; width: auto; padding: 8px 12px; cursor:pointer; border-radius:5px;}
         .btn-status { background: #f0f0f0; border: 1px solid #ccc; width: auto; padding: 8px 12px; cursor:pointer; border-radius:5px; font-size: 1.2rem; }
         .badge-turno { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; color: white; margin-left: 5px; }
         .dia { background: var(--warning); color: #000; }
         .noite { background: #303f9f; color: #fff; }
-        .label-status { font-size: 0.7rem; font-weight: bold; text-transform: uppercase; margin-top: 4px; display: block; }
         .obs-tag { background: #ffd54f; color: #000; font-size: 0.65rem; padding: 2px 5px; border-radius: 3px; font-weight: bold; margin-top: 5px; display: inline-block; }
+        .btn-edit, .btn-del { width: auto; padding: 8px 12px; cursor:pointer; border-radius:5px; }
+        .btn-edit { background: #fff9c4; border: 1px solid #fbc02d; }
+        .btn-del { background: #ffcdd2; border: 1px solid #e53935; }
     </style>
 </head>
 <body>
@@ -48,45 +47,28 @@
 
         <div style="text-align:center; margin-bottom:15px">
             <span style="background:#e8f5e9; padding:8px 15px; border-radius:20px; color:var(--success); font-weight:bold">
-                👮 Total em Serviço (Geral): <span id="qtdServico">0</span>
+                👮 Total em Serviço: <span id="qtdServico">0</span>
             </span>
         </div>
 
         <button onclick="compartilharRelatorioTexto()" class="btn-share">📤 COMPARTILHAR RELATÓRIO (WHATSAPP)</button>
-        <button onclick="gerarRelatorioPDF()" class="btn-p" style="opacity:0.6; font-size:0.8rem">📄 Tentar Gerar PDF (Impressão)</button>
 
-        <div class="section-title">👮 Supervisores (Em Serviço)</div>
-        <div id="listaSuperv"></div>
-        
-        <div class="section-title">🚗 Reservas / Base (Em Serviço)</div>
-        <div id="listaReservas"></div>
-
-        <div class="section-title">🏢 Postos (Em Serviço)</div>
-        <div id="listaPostos"></div>
+        <div id="conteudoPainel">
+            </div>
     </div>
 
     <div id="gestao" class="page">
-        <div class="card">
-            <h3>Importação e Backup</h3>
-            <div style="display:flex; gap:5px">
-                <button class="btn-import" onclick="exportarDados()" style="background:#e3f2fd; border-style:solid">💾 Backup JSON</button>
-                <button class="btn-import" onclick="document.getElementById('fileRestore').click()" style="background:#f1f8e9; border-style:solid">📂 Restaurar</button>
-            </div>
-            <input type="file" id="fileRestore" accept=".json" style="display:none" onchange="importarBackup(this)">
-            <div style="display:flex; gap:5px; margin-top:10px;">
-                <button class="btn-import" onclick="document.getElementById('fileInput').click()" style="flex:3; background: #e8eaf6; border: 1px solid #1a237e; color: #1a237e;">📄 ADICIONAR TXT</button>
-                <button class="btn-update" onclick="acionarAtualizacaoTotal()" style="flex:2;">🔄 ATUALIZAR TUDO</button>
-            </div>
-            <input type="file" id="fileInput" accept=".txt,.csv" style="display:none" onchange="importarArquivoTexto(this, false)">
-            <input type="file" id="fileInputUpdate" accept=".txt,.csv" style="display:none" onchange="importarArquivoTexto(this, true)">
-        </div>
-
         <div class="card">
             <h3 id="tituloForm">Cadastro / Edição Manual</h3>
             <input type="hidden" id="editId">
             <input type="text" id="nome" placeholder="Nome Completo">
             <input type="text" id="matricula" placeholder="Matrícula">
-            <input type="text" id="posto" placeholder="Nome do Posto">
+            
+            <div style="display:flex; gap:5px">
+                <select id="postoSelect">
+                    </select>
+                <button onclick="gerenciarPostos()" style="width:50px; background:#eee">➕</button>
+            </div>
             
             <div style="display:flex; gap:5px">
                 <select id="cargo">
@@ -104,14 +86,13 @@
             <select id="escala">
                 <option value="12x36">12x36</option>
                 <option value="2x1">2x1 Comum</option>
-                <option value="2x1_FOLGUISTA">2x1 Folguista/Base (Especial)</option>
+                <option value="2x1_FOLGUISTA">2x1 Folguista/Base</option>
                 <option value="4x2">4x2</option>
-                <option value="5x1">5x1</option>
                 <option value="5x2">5x2</option>
                 <option value="6x1">6x1</option>
             </select>
 
-            <input type="date" id="dataInicio" title="Data de Início">
+            <input type="date" id="dataInicio">
             <button class="btn-p" onclick="salvar()">Salvar Registro</button>
             <button id="btnCancelar" style="display:none; background:#eee; border:none; margin-top:5px" onclick="limparForm()">Cancelar</button>
         </div>
@@ -128,19 +109,61 @@
 </nav>
 
 <script>
-let db = JSON.parse(localStorage.getItem("db_quantica_vFinal")) || [];
+// LISTA INICIAL DE POSTOS
+let postosPadrao = ["10º TABELIONATO","COLÉGIO DOM FELICIANO","COLÉGIO STELLA MARIS","CONDOMINIO EDIFICIO FURRIEL","CONDOMINIO SAINT MORITZ","COND ALPHAVILLE POA","COND CASA 100","COND MARIA VILAC","COND SOLAR SEVILHA","COND TREND NOVA CARLOS GOMES","CONDOMÍNIO REBOUÇAS 180","COND VINTAGE","INSTITUTO RELIGIOSO BARBARA MAIX","JOSAPAR (CAPÃO DA CANOA)","JOSAPAR (MENINO DEUS)","JOSAPAR (TERESÓPOLIS)","JOSAPAR (TORRES)","JOSAPAR (TRAMANDAÍ)","MedCenter","PANVEL – ALVORADA","PANVEL – ANITA GARIBALDI","PANVEL – CASEMIRO DE ABREU","PANVEL – MINI CD CAVALHADA","PANVEL – MINI CD PROTÁSIO ALVES","PANVEL – NILO PEÇANHA","PANVEL – OSCAR PEREIRA","PANVEL – PLÍNIO BRASIL MILANO","QUANTICA – RESERVA","QUÂNTICA – ADMINISTRATIVO","QUÂNTICA – OPERACIONAL","SHOPPING JOÃO PESSOA","VIVA OPEN MALL – MONITORAMENTO","VIVA OPEN MALL – SEGURANÇA","ZAFFARI – CABRAL","ZAFFARI – CAVALHADA","ZAFFARI – CESTTO GRAVATAI","ZAFFARI – CESTTO PROTÁSIO","ZAFFARI – CESTTO VIAMÃO","ZAFFARI – CESTTO WENCESLAU ESCOBAR","ZAFFARI – FERNANDES VIEIRA","ZAFFARI – IPANEMA","ZAFFARI – LINDÓIA","ZAFFARI – CRISTOVÃO COLOMBO"];
+
+let db = JSON.parse(localStorage.getItem("db_quantica_v5")) || [];
+let listaPostos = JSON.parse(localStorage.getItem("postos_quantica")) || postosPadrao;
+
+function popularPostos() {
+    const select = document.getElementById("postoSelect");
+    select.innerHTML = "";
+    listaPostos.sort().forEach(p => {
+        let opt = document.createElement("option");
+        opt.value = p; opt.text = p;
+        select.add(opt);
+    });
+}
+
+function gerenciarPostos() {
+    let acao = prompt("1 - Adicionar Novo Posto\n2 - Editar Posto Existente\n3 - Excluir Posto");
+    if(acao === "1") {
+        let novo = prompt("Nome do novo posto:").toUpperCase();
+        if(novo) { listaPostos.push(novo); salvarPostos(); }
+    } else if(acao === "2") {
+        let antigo = document.getElementById("postoSelect").value;
+        let novo = prompt("Alterar " + antigo + " para:", antigo).toUpperCase();
+        if(novo) {
+            listaPostos = listaPostos.map(p => p === antigo ? novo : p);
+            db.forEach(f => { if(f.posto === antigo) f.posto = novo; });
+            salvarPostos();
+            localStorage.setItem("db_quantica_v5", JSON.stringify(db));
+        }
+    } else if(acao === "3") {
+        let alvo = document.getElementById("postoSelect").value;
+        if(confirm("Excluir posto " + alvo + "?")) {
+            listaPostos = listaPostos.filter(p => p !== alvo);
+            salvarPostos();
+        }
+    }
+}
+
+function salvarPostos() {
+    localStorage.setItem("postos_quantica", JSON.stringify(listaPostos));
+    popularPostos();
+}
 
 function calcularStatus(f) {
     let hoje = new Date(); hoje.setHours(0,0,0,0);
     let inicio = new Date(f.dataInicio);
     let diff = Math.floor((hoje - inicio) / 86400000);
-    if(diff < 0) return {txt: "Folga", cl: "st-folga"};
+    if(diff < 0) return {txt: "Folga", cl: "st-folga", servico: false};
 
     if(f.escala === "2x1_FOLGUISTA") {
         let diaCiclo = diff % 5;
-        if(diaCiclo === 0 || diaCiclo === 1) return {txt: "📍 FOLGUISTA", cl: "st-servico", servico: true};
+        if(diaCiclo === 0 || diaCiclo === 1) return {txt: "Serviço", cl: "st-servico", servico: true};
         if(diaCiclo === 2) return {txt: "Folga", cl: "st-folga", servico: false};
-        if(diaCiclo === 3 || diaCiclo === 4) return {txt: "🏢 BASE (RESERVA)", cl: "st-reserva", servico: true};
+        return {txt: "Reserva", cl: "st-reserva", servico: true};
     }
 
     let emServico = false;
@@ -148,7 +171,6 @@ function calcularStatus(f) {
         case "12x36": emServico = (diff % 2 === 0); break;
         case "2x1":   emServico = (diff % 3 < 2); break;
         case "4x2":   emServico = (diff % 6 < 4); break;
-        case "5x1":   emServico = (diff % 6 < 5); break;
         case "5x2":   emServico = (diff % 7 < 5); break;
         case "6x1":   emServico = (diff % 7 < 6); break;
         default:      emServico = true;
@@ -156,56 +178,33 @@ function calcularStatus(f) {
     return emServico ? {txt: "Serviço", cl: "st-servico", servico: true} : {txt: "Folga", cl: "st-folga", servico: false};
 }
 
-function registrarOcorrencia(id) {
-    const f = db.find(x => x.id === id);
-    const tipo = prompt(`Ocorrência para ${f.nome}:\n1-Falta, 2-Atestado, 3-Cob. Posto, 4-Limpar`);
-    if(tipo==="1") f.obs="FALTA"; else if(tipo==="2") f.obs="ATESTADO"; else if(tipo==="3") f.obs="COB. POSTO"; else if(tipo==="4") delete f.obs;
-    localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-    render();
-}
-
 function render() {
     let tPainel = document.getElementById("buscaPainel").value.toLowerCase();
     let tGestao = document.getElementById("buscaGestao").value.toLowerCase();
-    let sup = document.getElementById("listaSuperv");
-    let res = document.getElementById("listaReservas");
-    let pos = document.getElementById("listaPostos");
+    let conteudoPainel = document.getElementById("conteudoPainel");
     let adm = document.getElementById("listaAdmin");
     
-    sup.innerHTML = ""; res.innerHTML = ""; pos.innerHTML = ""; adm.innerHTML = "";
+    conteudoPainel.innerHTML = ""; adm.innerHTML = "";
     document.getElementById("dataHoje").innerText = "HOJE: " + new Date().toLocaleDateString('pt-BR');
     
     let totalServico = 0;
-    db.sort((a, b) => a.nome.localeCompare(b.nome));
+    let postosComGente = {};
 
+    // Organizar dados para o Painel
     db.forEach(f => {
         let statusObj = calcularStatus(f);
-        let tCl = f.turno === "Diurno" ? "dia" : "noite";
-        let cardAlerta = (f.obs === "FALTA" || f.obs === "ATESTADO") ? "st-alerta" : "";
-        
-        if(statusObj.servico) totalServico++;
-
-        if(statusObj.servico && (f.nome.toLowerCase().includes(tPainel) || f.posto.toLowerCase().includes(tPainel))) {
-            let card = `<div class="card item ${cardAlerta}">
-                <div style="flex:1">
-                    <b>${f.nome}</b> <span class="badge-turno ${tCl}">${f.turno[0]}</span><br>
-                    <small>${f.posto}</small><br>
-                    ${f.obs ? `<span class="obs-tag">${f.obs}</span>` : ''}
-                </div>
-                <div style="display:flex; align-items:center; gap:10px">
-                    <button class="btn-status" onclick="registrarOcorrencia(${f.id})">📝</button>
-                    <div class="status-dot ${statusObj.cl}"></div>
-                </div>
-            </div>`;
-            if(f.cargo === "Fiscal" || f.cargo === "Inspetor") sup.innerHTML += card;
-            else if(f.cargo === "Reserva" || statusObj.cl === "st-reserva") res.innerHTML += card;
-            else pos.innerHTML += card;
+        if(statusObj.servico) {
+            if(f.nome.toLowerCase().includes(tPainel) || f.posto.toLowerCase().includes(tPainel)) {
+                if(!postosComGente[f.posto]) postosComGente[f.posto] = [];
+                postosComGente[f.posto].push(f);
+                totalServico++;
+            }
         }
 
+        // Render Gestão
         if(f.nome.toLowerCase().includes(tGestao) || f.posto.toLowerCase().includes(tGestao)) {
-            let sGeral = calcularStatus(f);
             adm.innerHTML += `<div class="card item">
-                <div><b>${f.nome}</b><br><small>${f.posto}</small></div>
+                <div><b>${f.nome}</b><br><small>${f.posto} (${f.turno})</small></div>
                 <div style="display:flex; gap:5px">
                     <button class="btn-edit" onclick="editar(${f.id})">✏️</button>
                     <button class="btn-del" onclick="excluir(${f.id})">🗑️</button>
@@ -213,66 +212,51 @@ function render() {
             </div>`;
         }
     });
+
+    // Renderizar Painel Organizado por Postos (Ordem Alfabética)
+    Object.keys(postosComGente).sort().forEach(postoNome => {
+        let htmlPosto = `<div class="posto-group-title">${postoNome}</div>`;
+        postosComGente[postoNome].forEach(f => {
+            let statusObj = calcularStatus(f);
+            let tCl = f.turno === "Diurno" ? "dia" : "noite";
+            let cardAlerta = (f.obs === "FALTA" || f.obs === "ATESTADO") ? "st-alerta" : "";
+            
+            htmlPosto += `<div class="card item ${cardAlerta}" style="margin-top:5px">
+                <div style="flex:1">
+                    <b>${f.nome}</b> <span class="badge-turno ${tCl}">${f.turno[0]}</span><br>
+                    <small>Status: ${statusObj.txt}</small><br>
+                    ${f.obs ? `<span class="obs-tag">${f.obs}</span>` : ''}
+                </div>
+                <div style="display:flex; align-items:center; gap:10px">
+                    <button class="btn-status" onclick="registrarOcorrencia(${f.id})">📝</button>
+                    <div class="status-dot ${statusObj.cl}"></div>
+                </div>
+            </div>`;
+        });
+        conteudoPainel.innerHTML += htmlPosto;
+    });
+
     document.getElementById("qtdServico").innerText = totalServico;
 }
 
-// SOLUÇÃO DEFINITIVA PARA MOBILE: COMPARTILHAR TEXTO FORMATADO
-function compartilharRelatorioTexto() {
-    const hoje = new Date().toLocaleDateString('pt-BR');
-    const emServico = db.filter(f => calcularStatus(f).servico).sort((a,b) => a.nome.localeCompare(b.nome));
-    
-    let msg = `*QUÂNTICA - RELATÓRIO OPERACIONAL*\n📅 Data: ${hoje}\n\n`;
-
-    msg += `*👮 SUPERVISORES / FISCAIS:*\n`;
-    emServico.filter(f=>f.cargo==='Fiscal'||f.cargo==='Inspetor').forEach(f => {
-        msg += `• ${f.nome} - ${f.posto} ${f.obs ? `[${f.obs}]` : ''}\n`;
-    });
-
-    msg += `\n*🚗 RESERVAS / BASE:*\n`;
-    emServico.filter(f=>f.cargo==='Reserva' || calcularStatus(f).cl === 'st-reserva').forEach(f => {
-        msg += `• ${f.nome} - ${f.posto} ${f.obs ? `[${f.obs}]` : ''}\n`;
-    });
-
-    msg += `\n*🏢 EFETIVO NOS POSTOS (ASP):*\n`;
-    emServico.filter(f=>f.cargo==='ASP' && calcularStatus(f).cl !== 'st-reserva').forEach(f => {
-        msg += `• ${f.nome} - ${f.posto} ${f.obs ? `[${f.obs}]` : ''}\n`;
-    });
-
-    msg += `\n_Total em serviço: ${emServico.length}_`;
-
-    if (navigator.share) {
-        navigator.share({
-            title: 'Relatório Operacional Quântica',
-            text: msg
-        }).catch(err => console.log("Erro ao compartilhar"));
-    } else {
-        // Fallback para navegadores antigos ou PC
-        const win = window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
-    }
+function registrarOcorrencia(id) {
+    const f = db.find(x => x.id === id);
+    const tipo = prompt(`Ocorrência para ${f.nome}:\n1-Falta, 2-Atestado, 3-Cobrindo Postos, 4-Limpar`);
+    if(tipo==="1") f.obs="FALTA"; 
+    else if(tipo==="2") f.obs="ATESTADO"; 
+    else if(tipo==="3") f.obs="COBRINDO POSTO"; 
+    else if(tipo==="4") delete f.obs;
+    localStorage.setItem("db_quantica_v5", JSON.stringify(db));
+    render();
 }
 
-// Relatório PDF Original (Tentativa)
-function gerarRelatorioPDF() {
-    const hoje = new Date().toLocaleDateString('pt-BR');
-    const emServico = db.filter(f => calcularStatus(f).servico);
-    let win = window.open('', '_blank');
-    if(!win) return alert("Bloqueio de pop-up!");
-    let html = `<html><body style="font-family:sans-serif"><h1>Relatório Quântica ${hoje}</h1>`;
-    emServico.forEach(f => { html += `<p><b>${f.nome}</b> - ${f.posto} ${f.obs ? `(${f.obs})` : ''}</p>`; });
-    html += `</body></html>`;
-    win.document.write(html); win.document.close(); win.print();
-}
-
-// Restante das funções auxiliares
-function acionarAtualizacaoTotal() { if(confirm("Apagar tudo?")) document.getElementById('fileInputUpdate').click(); }
-function mudarPagina(id, btn) { document.querySelectorAll(".page").forEach(p => p.classList.remove("active")); document.querySelectorAll("nav button").forEach(b => b.classList.remove("active")); document.getElementById(id).classList.add("active"); btn.classList.add("active"); render(); }
 function salvar() {
     let idEdicao = document.getElementById("editId").value;
     let dados = {
         id: idEdicao ? parseFloat(idEdicao) : Date.now(),
         nome: document.getElementById("nome").value.toUpperCase(),
         matricula: document.getElementById("matricula").value.toUpperCase(),
-        posto: document.getElementById("posto").value.toUpperCase(),
+        posto: document.getElementById("postoSelect").value,
         cargo: document.getElementById("cargo").value,
         turno: document.getElementById("turno").value,
         escala: document.getElementById("escala").value,
@@ -280,55 +264,50 @@ function salvar() {
     };
     if(!dados.nome || !dados.dataInicio) return alert("Preencha Nome e Data!");
     if(idEdicao) { let index = db.findIndex(f => f.id == idEdicao); db[index] = dados; } else { db.push(dados); }
-    localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
+    localStorage.setItem("db_quantica_v5", JSON.stringify(db));
     limparForm(); render();
 }
+
 function editar(id) {
     let f = db.find(item => item.id === id);
     document.getElementById("editId").value = f.id;
     document.getElementById("nome").value = f.nome;
     document.getElementById("matricula").value = f.matricula || "";
-    document.getElementById("posto").value = f.posto;
+    document.getElementById("postoSelect").value = f.posto;
     document.getElementById("cargo").value = f.cargo;
     document.getElementById("turno").value = f.turno;
     document.getElementById("escala").value = f.escala;
     document.getElementById("dataInicio").value = f.dataInicio;
     document.getElementById("tituloForm").innerText = "Editando Funcionário";
     document.getElementById("btnCancelar").style.display = "block";
-    window.scrollTo(0,0);
-}
-function excluir(id) { if(confirm("Excluir?")) { db = db.filter(f => f.id !== id); localStorage.setItem("db_quantica_vFinal", JSON.stringify(db)); render(); } }
-function limparForm() { document.getElementById("editId").value = ""; document.getElementById("nome").value = ""; document.getElementById("matricula").value = ""; document.getElementById("posto").value = ""; document.getElementById("dataInicio").value = ""; document.getElementById("tituloForm").innerText = "Cadastro Manual"; document.getElementById("btnCancelar").style.display = "none"; }
-function exportarDados() { const blob = new Blob([JSON.stringify(db, null, 2)], {type: "application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `backup_quantica.json`; a.click(); }
-function importarBackup(input) { const reader = new FileReader(); reader.onload = function(e) { db = JSON.parse(e.target.result); localStorage.setItem("db_quantica_vFinal", JSON.stringify(db)); render(); }; reader.readAsText(input.files[0]); }
-function importarArquivoTexto(input, limparTudo) {
-    if (!input || !input.files[0]) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const texto = e.target.result;
-        const linhas = texto.split(/\r?\n/).filter(l => l.trim().length > 0);
-        let novosRegistros = [];
-        let dataHoje = new Date().toISOString().split('T')[0];
-        linhas.forEach((linha, index) => {
-            const colunas = linha.split(';');
-            if (colunas.length >= 3) {
-                const nomeS = colunas[0]?.trim().toUpperCase();
-                const postoS = colunas[2]?.trim().toUpperCase();
-                if (nomeS && !linha.includes("NOME;")) {
-                    let cargoAuto = "ASP";
-                    if(postoS.includes("RESERVA")) cargoAuto = "Reserva";
-                    if(postoS.includes("FISCAL") || postoS.includes("INSPETOR")) cargoAuto = "Fiscal";
-                    novosRegistros.push({ id: Date.now() + index, nome: nomeS, matricula: colunas[1] || "N/A", posto: postoS, cargo: cargoAuto, turno: "Diurno", escala: "12x36", dataInicio: dataHoje });
-                }
-            }
-        });
-        db = limparTudo ? novosRegistros : db.concat(novosRegistros);
-        localStorage.setItem("db_quantica_vFinal", JSON.stringify(db));
-        render();
-    };
-    reader.readAsText(input.files[0], "UTF-8");
+    mudarPagina('gestao', document.getElementById('btnGestao'));
 }
 
+function excluir(id) { if(confirm("Excluir funcionário?")) { db = db.filter(f => f.id !== id); localStorage.setItem("db_quantica_v5", JSON.stringify(db)); render(); } }
+function limparForm() { document.getElementById("editId").value = ""; document.getElementById("nome").value = ""; document.getElementById("matricula").value = ""; document.getElementById("dataInicio").value = ""; document.getElementById("tituloForm").innerText = "Cadastro Manual"; document.getElementById("btnCancelar").style.display = "none"; }
+function mudarPagina(id, btn) { document.querySelectorAll(".page").forEach(p => p.classList.remove("active")); document.querySelectorAll("nav button").forEach(b => b.classList.remove("active")); document.getElementById(id).classList.add("active"); btn.classList.add("active"); render(); }
+
+function compartilharRelatorioTexto() {
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    const emServico = db.filter(f => calcularStatus(f).servico).sort((a,b) => a.posto.localeCompare(b.posto));
+    
+    let msg = `*QUÂNTICA - RELATÓRIO OPERACIONAL*\n📅 Data: ${hoje}\n\n`;
+    let postoAtual = "";
+
+    emServico.forEach(f => {
+        if(f.posto !== postoAtual) {
+            postoAtual = f.posto;
+            msg += `\n*${postoAtual}*\n`;
+        }
+        msg += `• ${f.nome} (${f.turno[0]}) ${f.obs ? `[${f.obs}]` : ''}\n`;
+    });
+
+    msg += `\n_Total: ${emServico.length}_`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// Início
+popularPostos();
 render();
 </script>
 </body>
