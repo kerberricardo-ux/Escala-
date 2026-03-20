@@ -2,376 +2,261 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FortGuard - Ronda Fácil</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FortGuard - Sistema de Escalas</title>
     <style>
         :root {
-            --primary: #1a237e; --secondary: #0d47a1; --accent: #ffd600;
-            --bg: #f4f4f9; --text: #333; --white: #ffffff;
+            --primary: #1a252f; --accent: #2980b9; --bg: #f4f7f6;
+            --text: #333; --white: #ffffff; --danger: #e74c3c; --success: #27ae60;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 70px; }
-        .header { background: var(--primary); color: white; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .header h1 { margin: 0; font-size: 1.5rem; }
-        .header p { margin: 0; font-size: 0.9rem; opacity: 0.8; }
-        
-        .container { padding: 15px; max-width: 600px; margin: auto; }
-        .card { background: var(--white); border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        
-        label { display: block; margin-top: 10px; font-weight: bold; font-size: 0.85rem; color: #555; }
-        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 1rem; }
-        
-        .btn { border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; transition: 0.3s; }
-        .btn-save { background: #2e7d32; color: white; }
-        .btn-delete { background: #d32f2f; color: white; }
-        .btn-pdf { background: #1976d2; color: white; }
-        .btn-action { font-size: 0.75rem; padding: 8px; margin-top: 5px; }
-        
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--white); display: flex; justify-content: space-around; border-top: 1px solid #ddd; padding: 10px 0; z-index: 100; }
-        .nav-item { cursor: pointer; text-align: center; font-size: 0.8rem; flex: 1; color: #666; }
-        .hidden { display: none !important; }
 
-        .viatura-group { background: #e8eaf6; border-radius: 8px; padding: 12px; border: 1px solid #c5cae9; margin-bottom: 15px; }
-        .viatura-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 80px; }
+        .container { padding: 15px; }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; background: var(--primary);
+            display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000;
+        }
+        .nav-item { color: #bdc3c7; background: none; border: none; font-size: 12px; cursor: pointer; text-align: center; }
+        .nav-item.active { color: var(--white); font-weight: bold; }
+
+        .header-date { background: var(--white); display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .panel { background: var(--white); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .panel h3 { margin: 0 0 10px 0; color: var(--accent); font-size: 1rem; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         
-        .checklist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .check-item { background: #eee; padding: 10px; border-radius: 5px; text-align: center; cursor: pointer; border: 1px solid transparent; font-size: 0.8rem; }
-        .check-item.ok { background: #c8e6c9; border: 1px solid #2e7d32; }
-        .check-item.pendencia { background: #ffcdd2; border: 1px solid #d32f2f; }
+        .card-func { background: #fafafa; border-left: 4px solid var(--accent); padding: 10px; margin: 8px 0; border-radius: 6px; }
+        .badge { font-size: 10px; background: #eee; padding: 2px 5px; border-radius: 4px; margin-right: 3px; font-weight: bold; }
+
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 3px; color: #555; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
         
-        .posto-item { border-left: 5px solid var(--primary); position: relative; padding: 15px; }
-        .editable-field { background: #f9f9f9; padding: 8px; border-radius: 4px; border: 1px dashed #ccc; margin: 5px 0; font-size: 0.9rem; min-height: 20px; }
-        .btn-row { display: flex; gap: 5px; margin-top: 10px; }
-        .delete-icon { position: absolute; top: 10px; right: 10px; color: #d32f2f; cursor: pointer; font-weight: bold; }
+        .btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-share { background: #25d366; color: white; } 
+        .btn-edit { background: var(--accent); color: white; padding: 5px 10px; width: auto; font-size: 11px; }
+
+        .flex-row { display: flex; gap: 8px; }
+        .hidden { display: none; }
+        .item-gestao { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; }
         
-        #preview-foto { width: 100%; max-height: 200px; object-fit: cover; border-radius: 5px; margin-top: 10px; display: none; border: 2px solid #ddd; }
+        @media print {
+            .bottom-nav, .header-date, .btn { display: none !important; }
+        }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h1>FortGuard</h1>
-    <p>Ronda Fácil</p>
-</div>
-
-<div id="view-perfil" class="container">
-    <div class="card">
-        <h3>👤 Perfil do Colaborador</h3>
-        <label>Nome:</label> <input type="text" id="p-nome">
-        <label>Cargo:</label> <input type="text" id="p-cargo">
-        <label>Matrícula:</label> <input type="number" id="p-matrícula">
-        <label>Empresa:</label> <input type="text" id="p-empresa">
-        <label>CNPJ:</label> <input type="text" id="p-cnpj">
-        <label>Placa Viatura (Fixa):</label> <input type="text" id="p-placa" placeholder="ABC-1234">
-        <button class="btn btn-save" onclick="salvarPerfil()">Salvar Perfil</button>
+<div id="view-postos" class="container">
+    <div class="header-date">
+        <button onclick="mudarData(-1)" style="padding:10px; border-radius:8px; border:none; background:var(--accent); color:white">←</button>
+        <span id="label-data" style="font-weight: bold;"></span>
+        <button onclick="mudarData(1)" style="padding:10px; border-radius:8px; border:none; background:var(--accent); color:white">→</button>
     </div>
-</div>
 
-<div id="view-rondas" class="container hidden">
-    <div class="card">
-        <h3>📋 Registro de Ronda</h3>
-        
-        <div class="viatura-group">
-            <strong>🚗 Dados da Viatura</strong>
-            <div class="viatura-inputs">
-                <div>
-                    <label>Placa:</label>
-                    <input type="text" id="r-placa" readonly style="background: #f0f0f0;">
-                </div>
-                <div>
-                    <label>KM Atual:</label>
-                    <input type="number" id="r-km" placeholder="00000">
-                </div>
-            </div>
-        </div>
-
-        <label>Posto:</label> <select id="r-posto"></select>
-        <label>Funcionário no Posto:</label> <input type="text" id="r-func">
-        <label>Matrícula Func.:</label> <input type="number" id="r-matrícula-func">
-        
-        <label>Motivo da Visita:</label> 
-        <select id="r-motivo" onchange="toggleFiscalizacao()">
-            <option value="Deslocamento">Deslocamento</option>
-            <option value="Fiscalização">Fiscalização</option>
-            <option value="Entrega de Material">Entrega de Material</option>
-            <option value="Outros">Outros</option>
-        </select>
-
-        <div id="sec-fiscalizacao" class="hidden">
-            <label>Checklist de Fiscalização:</label>
-            <div class="checklist-grid" id="checklist">
-                <div class="check-item" onclick="toggleCheck(this)">Apresentação</div>
-                <div class="check-item" onclick="toggleCheck(this)">Uniforme</div>
-                <div class="check-item" onclick="toggleCheck(this)">Postura</div>
-                <div class="check-item" onclick="toggleCheck(this)">Livro Ocorrência</div>
-                <div class="check-item" onclick="toggleCheck(this)">Material Carga</div>
-                <div class="check-item" onclick="toggleCheck(this)">Outros</div>
-            </div>
-        </div>
-
-        <label>Observações:</label> <textarea id="r-obs" rows="3"></textarea>
-        <label>Foto do Posto:</label>
-        <input type="file" id="r-foto" accept="image/*" capture="camera" onchange="previewImage(this)">
-        <img id="preview-foto" src="#" alt="Preview">
-
-        <button class="btn btn-save" onclick="salvarRonda()">SALVAR RONDA</button>
-    </div>
+    <div class="panel"><h3>Supervisores</h3><div id="lista-sup"></div></div>
+    <div class="panel"><h3>Reservas</h3><div id="lista-res"></div></div>
+    <div class="panel"><h3>Geral (Postos)</h3><div id="lista-geral"></div></div>
     
-    <div class="card">
-        <h4>Resumo do Plantão</h4>
-        <p>Total de Rondas: <span id="qtd-rondas" style="font-weight:bold; color:var(--primary)">0</span></p>
-        <button class="btn btn-pdf" onclick="gerarPdfPlantao()">RELATÓRIO DE PLANTÃO (PDF)</button>
-        <button class="btn btn-delete" onclick="zerarRondas()">ZERAR PLANTÃO</button>
-        <hr>
-        <div id="historico-rondas"></div>
-    </div>
+    <button class="btn btn-share" onclick="compartilharRelatorio()">📤 COMPARTILHAR RELATÓRIO</button>
+    <button class="btn" style="background:#34495e; color:white" onclick="window.print()">🖨️ GERAR PDF</button>
 </div>
 
-<div id="view-postos" class="container hidden">
-    <div class="card">
-        <h3>📍 Postos de Serviço</h3>
-        <input type="text" id="busca-posto" placeholder="Buscar posto..." onkeyup="renderPostos()">
-        <div id="lista-postos" style="margin-top: 15px;"></div>
-    </div>
-</div>
-
-<div id="view-config" class="container hidden">
-    <div class="card">
-        <h3>⚙️ Administrativo</h3>
-        <div id="lock-screen">
-            <label>PIN:</label>
-            <input type="password" id="pin-input" maxlength="4">
-            <button class="btn btn-save" onclick="checkPin()">Acessar</button>
+<div id="view-add" class="container hidden">
+    <div class="panel">
+        <h3 id="form-title">Adicionar Funcionário</h3>
+        <input type="hidden" id="edit-id">
+        <div class="form-group"><label>Nome</label><input type="text" id="f-nome"></div>
+        <div class="flex-row">
+            <div class="form-group" style="flex:1"><label>Matrícula</label><input type="text" id="f-matr"></div>
+            <div class="form-group" style="flex:1"><label>Turno</label><select id="f-turno"><option>Dia</option><option>Noite</option></select></div>
         </div>
-        <div id="config-content" class="hidden">
-            <button class="btn btn-pdf" onclick="document.getElementById('import-file').click()">Importar Lista (.txt)</button>
-            <input type="file" id="import-file" class="hidden" accept=".txt,.csv" onchange="importarPostos(this)">
-            <button class="btn btn-delete" onclick="limparTodosPostos()">APAGAR TODOS OS POSTOS</button>
+        <div class="flex-row">
+            <div class="form-group" style="flex:1"><label>Cargo</label>
+                <select id="f-cargo"><option value="reserva">Reserva</option><option value="fiscal">Fiscal</option><option value="inspetor">Inspetor</option><option value="lider">Líder</option><option value="asp">ASP</option></select>
+            </div>
+            <div class="form-group" style="flex:1"><label>Escala</label>
+                <select id="f-escala">
+                    <option value="12x36">12x36</option>
+                    <option value="2x1">2x1</option>
+                    <option value="4x2">4x2</option>
+                    <option value="5x1">5x1</option>
+                    <option value="5x2">5x2 (Seg-Sex)</option>
+                    <option value="6x1">6x1</option>
+                    <option value="6x2">6x2</option>
+                </select>
+            </div>
         </div>
+        <div class="form-group"><label>Posto</label><input type="text" id="f-posto" list="dl-postos"></div>
+        <div class="form-group"><label>Início da Escala (1º dia trabalhado)</label><input type="date" id="f-inicio"></div>
+        <div class="form-group"><label>Status Contratual</label>
+            <select id="f-status"><option value="Ativo">Ativo</option><option value="INSS">INSS</option><option value="Férias">Férias</option><option value="Afastado">Afastado</option></select>
+        </div>
+        <button class="btn btn-success" onclick="salvarFuncionario()">SALVAR FUNCIONÁRIO</button>
+        <button class="btn hidden" id="btn-cancelar" style="background:#7f8c8d; color:white" onclick="resetForm()">CANCELAR</button>
+    </div>
+
+    <div class="panel"><h3>Funcionários Cadastrados</h3><div id="lista-cadastrados"></div></div>
+    
+    <div class="panel">
+        <h3>Gestão de Postos</h3>
+        <div class="flex-row"><input type="text" id="novo-posto-input" placeholder="Novo Posto"><button onclick="addPosto()" style="background:var(--success); color:white; border:none; padding:10px; border-radius:8px">+</button></div>
+        <div id="lista-gestao-postos" style="margin-top:10px; max-height:150px; overflow-y:auto"></div>
     </div>
 </div>
 
-<nav class="nav-bar">
-    <div class="nav-item" onclick="showView('perfil')">👤<br>Perfil</div>
-    <div class="nav-item" onclick="showView('rondas')">📋<br>Rondas</div>
-    <div class="nav-item" onclick="showView('postos')">📍<br>Postos</div>
-    <div class="nav-item" onclick="showView('config')">⚙️<br>Config</div>
-</nav>
+<datalist id="dl-postos"></datalist>
+
+<div class="bottom-nav">
+    <button class="nav-item active" id="tab1" onclick="tab('postos')"><div>📋</div>Postos</button>
+    <button class="nav-item" id="tab2" onclick="tab('add')"><div>➕</div>Add+</button>
+</div>
 
 <script>
-    // Inicialização do Banco de Dados
-    let db = JSON.parse(localStorage.getItem('fortguard_db')) || { perfil: {}, postos: [], rondas: [] };
-    let fotoBase64 = "";
+    const postosPadrao = ["10º TABELIONATO", "COLÉGIO DOM FELICIANO", "COLÉGIO STELLA MARIS", "COND ALPHAVILLE POA", "COND CASA 100", "COND MARIA VILAC", "COND SOLAR SEVILHA", "COND TREND NOVA CARLOS GOMES", "COND VINTAGE", "CONDOMINIO EDIFICIO FURRIEL", "CONDOMINIO SAINT MORITZ", "CONDOMÍNIO REBOUÇAS 180", "GERMANIA MALL", "INATIVO", "INATIVO (INSS)", "INSTITUTO RELIGIOSO BARBARA MAIX", "JOSAPAR (Menino Deus)", "JOSAPAR (TRAMANDAI)", "JOSAPAR (TORRES)", "JOSAPAR (TERESOPOLIS)", "JOSAPAR( CAPÃO DA CANOA )", "MedCenter", "PANVEL - 24 DE OUTUBRO", "PANVEL - ALVORADA", "PANVEL - ANITA GARIBALDI", "PANVEL - CASEMIRO DE ABREU", "PANVEL - MINI CD CAVALHADA", "PANVEL - MINI CD PROTÁSIO ALVES", "PANVEL - NILO PEÇANHA", "PANVEL - OSCAR PEREIRA", "PANVEL - PLÍNIO BRASIL MILANO", "PANVEL - TERESÓPOLIS", "PANVEL - VICENTE DA FONTOURA", "QUANTICA - RESERVA", "QUÂNTICA - ADMINISTRATIVO", "QUÂNTICA - OPERACIONAL", "SHOPPING JOÃO PESSOA", "VIVA OPEN MALL - MONITORAMENTO", "VIVA OPEN MALL - SEGURANÇA", "ZAFFARI - CABRAL", "ZAFFARI - CAVALHADA", "ZAFFARI - CESTTO GRAVATAI", "ZAFFARI - CESTTO PROTÁSIO", "ZAFFARI - CESTTO VIAMÃO", "ZAFFARI - CESTTO WENCESLAU ESCOBAR", "ZAFFARI - CRISTOVÃO COLOMBO", "ZAFFARI - FERNANDES VIEIRA", "ZAFFARI - IPANEMA", "ZAFFARI - LINDÓIA", "ZAFFARI - PROTÁSIO ALVES"];
 
-    function saveDB() { 
-        localStorage.setItem('fortguard_db', JSON.stringify(db)); 
+    let db_funcs = JSON.parse(localStorage.getItem('fg_funcs')) || [];
+    let db_postos = JSON.parse(localStorage.getItem('fg_postos')) || postosPadrao;
+    let dataRef = new Date();
+    dataRef.setHours(0,0,0,0);
+
+    function tab(v) {
+        document.getElementById('view-postos').classList.toggle('hidden', v !== 'postos');
+        document.getElementById('view-add').classList.toggle('hidden', v !== 'add');
+        document.getElementById('tab1').classList.toggle('active', v === 'postos');
+        document.getElementById('tab2').classList.toggle('active', v === 'add');
+        if(v === 'postos') renderEscala();
+        if(v === 'add') { renderCadastrados(); renderPostos(); }
     }
 
-    function showView(view) {
-        document.querySelectorAll('.container').forEach(v => v.classList.add('hidden'));
-        document.getElementById('view-' + view).classList.remove('hidden');
-        if(view === 'rondas') {
-            document.getElementById('r-placa').value = db.perfil.placa || "N/A";
-            atualizarSelectPostos();
-            renderRondas();
+    function estaDeServico(f, dataAlvo) {
+        if (!f.inicio) return true;
+        const inicio = new Date(f.inicio + "T00:00:00");
+        const alvo = new Date(dataAlvo);
+        alvo.setHours(0,0,0,0);
+        const diffDays = Math.floor((alvo - inicio) / (1000 * 60 * 60 * 24));
+        if (diffDays < 0) return false;
+
+        // Lógica de Ciclos: (diffDays % CicloTotal) < DiasTrabalho
+        switch(f.escala) {
+            case "12x36": return diffDays % 2 === 0;
+            case "2x1":   return diffDays % 3 < 2;
+            case "4x2":   return diffDays % 6 < 4;
+            case "5x1":   return diffDays % 6 < 5;
+            case "5x2":   const d = alvo.getDay(); return d !== 0 && d !== 6;
+            case "6x1":   return diffDays % 7 < 6;
+            case "6x2":   return diffDays % 8 < 6;
+            default: return true;
         }
-        if(view === 'postos') renderPostos();
     }
 
-    // --- SALVAR RONDA ---
-    function salvarRonda() {
-        const km = document.getElementById('r-km').value;
-        const posto = document.getElementById('r-posto').value;
-        if(!km || !posto || !fotoBase64) return alert("Preencha KM, Posto e tire a Foto!");
+    function renderEscala() {
+        document.getElementById('label-data').innerText = dataRef.toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
+        const s = document.getElementById('lista-sup'), r = document.getElementById('lista-res'), g = document.getElementById('lista-geral');
+        s.innerHTML = ''; r.innerHTML = ''; g.innerHTML = '';
 
-        const now = new Date();
-        const novaRonda = {
-            data: now.toLocaleDateString(),
-            hora: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-            placa: db.perfil.placa || "S/P",
-            km: km,
-            posto: posto,
-            func: document.getElementById('r-func').value,
-            matricula: document.getElementById('r-matrícula-func').value,
-            motivo: document.getElementById('r-motivo').value,
-            obs: document.getElementById('r-obs').value,
-            foto: fotoBase64,
-            checklist: Array.from(document.querySelectorAll('#checklist .check-item')).map(i => i.innerText + ": " + (i.classList.contains('ok') ? "OK" : i.classList.contains('pendencia') ? "PEND" : "N/A"))
-        };
-
-        db.rondas.push(novaRonda);
-        saveDB();
-        
-        alert("Ronda salva com sucesso!");
-        
-        // Limpa o formulário após salvar
-        limparCamposRonda();
-        // Atualiza a lista na tela
-        renderRondas();
-    }
-
-    // --- RENDERIZAR LISTA DE RONDAS (HISTÓRICO) ---
-    function renderRondas() {
-        const container = document.getElementById('historico-rondas');
-        const qtdLabel = document.getElementById('qtd-rondas');
-        
-        // Atualiza o contador
-        qtdLabel.innerText = db.rondas ? db.rondas.length : 0;
-        
-        if (!db.rondas || db.rondas.length === 0) {
-            container.innerHTML = "<p style='text-align:center; color:#999;'>Nenhuma ronda registrada no plantão.</p>";
-            return;
-        }
-
-        // Mostra a lista invertida (mais recente primeiro)
-        const listaHtml = [...db.rondas].reverse().map((r, i) => {
-            const originalIndex = db.rondas.length - 1 - i;
-            return `
-                <div style="padding:10px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center;">
-                    <div style="font-size:0.85rem">
-                        <strong>${r.hora}</strong> - ${r.posto}<br>
-                        <small style="color:#666">KM: ${r.km} | Viatura: ${r.placa}</small>
-                    </div>
-                    <button class="btn btn-pdf" style="width:auto; padding:5px 10px; margin:0; font-size:0.7rem;" onclick="gerarPdfIndividual(${originalIndex})">PDF</button>
-                </div>
-            `;
-        }).join('');
-        
-        container.innerHTML = listaHtml;
-    }
-
-    // --- LIMPAR FORMULÁRIO ---
-    function limparCamposRonda() {
-        document.getElementById('r-km').value = "";
-        document.getElementById('r-func').value = "";
-        document.getElementById('r-matrícula-func').value = "";
-        document.getElementById('r-obs').value = "";
-        document.getElementById('r-foto').value = "";
-        document.getElementById('r-motivo').value = "Deslocamento";
-        
-        // Reset checklist
-        document.querySelectorAll('.check-item').forEach(i => i.classList.remove('ok', 'pendencia'));
-        
-        // Reset foto preview
-        fotoBase64 = "";
-        document.getElementById('preview-foto').style.display = "none";
-        document.getElementById('preview-foto').src = "#";
-        
-        // Esconde checklist se não for fiscalização
-        toggleFiscalizacao();
-    }
-
-    // --- FUNÇÕES DE APOIO ---
-    function previewImage(i) {
-        const f = i.files[0];
-        const r = new FileReader();
-        r.onload = (e) => { 
-            fotoBase64 = e.target.result; 
-            document.getElementById('preview-foto').src = fotoBase64;
-            document.getElementById('preview-foto').style.display = "block";
-        };
-        r.readAsDataURL(f);
-    }
-
-    function salvarPerfil() {
-        db.perfil = {
-            nome: document.getElementById('p-nome').value,
-            cargo: document.getElementById('p-cargo').value,
-            matricula: document.getElementById('p-matrícula').value,
-            empresa: document.getElementById('p-empresa').value,
-            cnpj: document.getElementById('p-cnpj').value,
-            placa: document.getElementById('p-placa').value.toUpperCase()
-        };
-        saveDB(); 
-        alert("Perfil salvo!");
+        const funcsNoDia = db_funcs.filter(f => estaDeServico(f, dataRef));
+        funcsNoDia.sort((a,b) => a.posto.localeCompare(b.posto)).forEach(f => {
+            const html = `<div class="card-func" data-nome="${f.nome}" data-posto="${f.posto}" data-cargo="${f.cargo}">
+                <div style="display:flex; justify-content:space-between"><strong>${f.nome}</strong><span class="badge">${f.turno}</span></div>
+                <div style="font-size:11px; color:#666; margin-top:3px">${f.posto} • ${f.escala} • <small>${f.status}</small></div>
+                <select class="obs-plantao" style="margin-top:8px; font-size:12px; width:100%">
+                    <option value="">Status...</option><option value="Falta">Falta</option><option value="Recolhido">Recolhido</option>
+                    <option value="Suspenso">Suspenso</option><option value="Atestado">Atestado</option>
+                    ${f.cargo === 'reserva' ? '<option value="Cobertura">Cobertura</option>' : ''}
+                </select>
+            </div>`;
+            if(f.cargo === 'fiscal' || f.cargo === 'inspetor') s.innerHTML += html;
+            else if(f.cargo === 'reserva') r.innerHTML += html;
+            else g.innerHTML += html;
+        });
     }
 
     function renderPostos() {
-        const lista = document.getElementById('lista-postos');
-        const busca = document.getElementById('busca-posto').value.toLowerCase();
-        lista.innerHTML = "";
-        db.postos.forEach((p, index) => {
-            if(p.nome.toLowerCase().includes(busca)) {
-                lista.innerHTML += `
-                    <div class="card posto-item">
-                        <span class="delete-icon" onclick="excluirPosto(${index})">✕</span>
-                        <strong>${p.nome}</strong>
-                        <div class="editable-field" contenteditable="true" onblur="db.postos[${index}].endereco=this.innerText;saveDB()">${p.endereco || 'Endereço'}</div>
-                        <div class="editable-field" contenteditable="true" onblur="db.postos[${index}].telefone=this.innerText;saveDB()">${p.telefone || 'Telefone'}</div>
-                        <div class="btn-row">
-                            <button class="btn btn-pdf btn-action" onclick="window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('${p.nome} ${p.endereco}'))">🗺️ Rota</button>
-                            <button class="btn btn-save btn-action" onclick="location.href='tel:${p.telefone}'">📞 Ligar</button>
-                        </div>
-                    </div>`;
+        const dl = document.getElementById('dl-postos'), list = document.getElementById('lista-gestao-postos');
+        dl.innerHTML = ''; list.innerHTML = '';
+        db_postos.sort().forEach(p => {
+            dl.innerHTML += `<option value="${p}">`;
+            list.innerHTML += `<div class="item-gestao"><span>${p}</span><button onclick="delPosto('${p}')" style="color:red; background:none; border:none; font-weight:bold">X</button></div>`;
+        });
+    }
+
+    function addPosto() {
+        const p = document.getElementById('novo-posto-input').value.toUpperCase().trim();
+        if(p && !db_postos.includes(p)) { db_postos.push(p); localStorage.setItem('fg_postos', JSON.stringify(db_postos)); renderPostos(); document.getElementById('novo-posto-input').value = ''; }
+    }
+
+    function delPosto(p) { if(confirm("Excluir posto?")) { db_postos = db_postos.filter(x => x !== p); localStorage.setItem('fg_postos', JSON.stringify(db_postos)); renderPostos(); }}
+
+    async function compartilharRelatorio() {
+        let texto = `*FORTGUARD - ESCALA ${dataRef.toLocaleDateString('pt-BR')}*\n\n`;
+        document.querySelectorAll('.panel').forEach(panel => {
+            const titulo = panel.querySelector('h3').innerText;
+            const cards = panel.querySelectorAll('.card-func');
+            if(cards.length > 0) {
+                texto += `*${titulo.toUpperCase()}*\n`;
+                cards.forEach(c => {
+                    const obs = c.querySelector('.obs-plantao').value;
+                    texto += `- ${c.dataset.nome} (${c.dataset.posto})${obs ? ' -> ' + obs : ''}\n`;
+                });
+                texto += `\n`;
             }
         });
+        if (navigator.share) await navigator.share({ text: texto });
+        else { navigator.clipboard.writeText(texto); alert("Copiado!"); }
     }
 
-    function atualizarSelectPostos() {
-        const select = document.getElementById('r-posto');
-        select.innerHTML = db.postos.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('') || '<option>Nenhum Posto Cadastrado</option>';
+    function mudarData(d) { dataRef.setDate(dataRef.getDate() + d); renderEscala(); }
+
+    function salvarFuncionario() {
+        const f = {
+            id: document.getElementById('edit-id').value || Date.now().toString(),
+            nome: document.getElementById('f-nome').value,
+            matr: document.getElementById('f-matr').value,
+            turno: document.getElementById('f-turno').value,
+            cargo: document.getElementById('f-cargo').value,
+            escala: document.getElementById('f-escala').value,
+            posto: document.getElementById('f-posto').value,
+            inicio: document.getElementById('f-inicio').value,
+            status: document.getElementById('f-status').value
+        };
+        if(!f.nome || !f.posto || !f.inicio) return alert("Preencha os campos!");
+        const idx = db_funcs.findIndex(x => x.id === f.id);
+        if(idx > -1) db_funcs[idx] = f; else db_funcs.push(f);
+        localStorage.setItem('fg_funcs', JSON.stringify(db_funcs));
+        resetForm(); tab('postos');
     }
 
-    function zerarRondas() { 
-        if(confirm("Deseja apagar todas as rondas deste plantão?")) { 
-            db.rondas = []; 
-            saveDB(); 
-            renderRondas(); 
-        } 
+    function renderCadastrados() {
+        document.getElementById('lista-cadastrados').innerHTML = db_funcs.map(f => `
+            <div class="item-gestao">
+                <div><strong>${f.nome}</strong><br><small>${f.posto}</small></div>
+                <div><button class="btn-edit" onclick="editarFunc('${f.id}')">Alt</button>
+                <button class="btn-edit" style="background:red" onclick="excluirFunc('${f.id}')">X</button></div>
+            </div>`).join('');
     }
 
-    function excluirPosto(i) { if(confirm("Excluir posto?")) { db.postos.splice(i, 1); saveDB(); renderPostos(); } }
-    function checkPin() { if(document.getElementById('pin-input').value === "455") { document.getElementById('lock-screen').classList.add('hidden'); document.getElementById('config-content').classList.remove('hidden'); } else { alert("PIN Incorreto!"); } }
-    function toggleCheck(e) { if(!e.classList.contains('ok') && !e.classList.contains('pendencia')) e.classList.add('ok'); else if(e.classList.contains('ok')) { e.classList.remove('ok'); e.classList.add('pendencia'); } else e.classList.remove('pendencia'); }
-    function toggleFiscalizacao() { document.getElementById('sec-fiscalizacao').classList.toggle('hidden', document.getElementById('r-motivo').value !== "Fiscalização"); }
-
-    function gerarPdfIndividual(idx) {
-        const r = db.rondas[idx];
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFont("helvetica", "bold");
-        doc.text("RELATÓRIO DE RONDA - FORTGUARD", 10, 15);
-        doc.setFontSize(10); doc.setFont("helvetica", "normal");
-        doc.text(`Viatura: ${r.placa} | KM: ${r.km}`, 10, 22);
-        doc.text(`Posto: ${r.posto} | Hora: ${r.hora} | Data: ${r.data}`, 10, 28);
-        doc.line(10, 32, 200, 32);
-        doc.text(`Fiscal: ${db.perfil.nome || '-'}`, 10, 40);
-        doc.text(`Motivo: ${r.motivo} | Funcionário: ${r.func}`, 10, 46);
-        let y = 55; doc.text("Checklist:", 10, y); y += 6;
-        r.checklist.forEach(c => { doc.text("- " + c, 12, y); y += 6; });
-        if(r.foto) doc.addImage(r.foto, 'JPEG', 10, y + 5, 70, 50);
-        doc.save(`Ronda_${r.posto}.pdf`);
+    function editarFunc(id) {
+        const f = db_funcs.find(x => x.id == id);
+        document.getElementById('edit-id').value = f.id;
+        document.getElementById('f-nome').value = f.nome;
+        document.getElementById('f-matr').value = f.matr;
+        document.getElementById('f-posto').value = f.posto;
+        document.getElementById('f-inicio').value = f.inicio;
+        document.getElementById('f-escala').value = f.escala;
+        document.getElementById('f-cargo').value = f.cargo;
+        document.getElementById('f-turno').value = f.turno;
+        document.getElementById('f-status').value = f.status;
+        document.getElementById('form-title').innerText = "Editando...";
+        document.getElementById('btn-cancelar').classList.remove('hidden');
     }
 
-    function gerarPdfPlantao() {
-        if(!db.rondas.length) return alert("Sem dados!");
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFont("helvetica", "bold"); doc.text("FECHAMENTO DE PLANTÃO", 10, 15);
-        doc.setFontSize(10); doc.setFont("helvetica", "normal");
-        let y = 30;
-        db.rondas.forEach((r, i) => {
-            doc.text(`${i+1}. ${r.hora} - ${r.posto} (KM: ${r.km})`, 10, y);
-            y += 8; if(y > 280) { doc.addPage(); y = 20; }
-        });
-        doc.save("Relatorio_Plantao.pdf");
-    }
+    function excluirFunc(id) { if(confirm("Excluir?")) { db_funcs = db_funcs.filter(x => x.id != id); localStorage.setItem('fg_funcs', JSON.stringify(db_funcs)); renderCadastrados(); }}
+    function resetForm() { document.getElementById('edit-id').value = ''; document.querySelectorAll('#view-add input').forEach(i => i.value = ''); document.getElementById('btn-cancelar').classList.add('hidden'); }
 
-    // --- CARREGAMENTO INICIAL ---
-    window.onload = () => {
-        // Carrega Perfil
-        if(db.perfil) {
-            document.getElementById('p-nome').value = db.perfil.nome || "";
-            document.getElementById('p-cargo').value = db.perfil.cargo || "";
-            document.getElementById('p-empresa').value = db.perfil.empresa || "";
-            document.getElementById('p-cnpj').value = db.perfil.cnpj || "";
-            document.getElementById('p-matrícula').value = db.perfil.matricula || "";
-            document.getElementById('p-placa').value = db.perfil.placa || "";
-        }
-        
-        // ESSENCIAL: Carrega a lista de rondas salva ao abrir o app
-        renderRondas();
-    };
+    renderEscala();
+    renderPostos();
 </script>
 </body>
 </html>
