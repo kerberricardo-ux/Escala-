@@ -6,77 +6,427 @@
     <title>FortGuard - Sistema de Escalas</title>
     <style>
         :root {
-            --primary: #1a252f; --accent: #2980b9; --bg: #f4f7f6;
-            --text: #333; --white: #ffffff; --danger: #e74c3c; --success: #27ae60;
+            --primary: #1a252f;
+            --accent: #2980b9;
+            --bg: #f4f7f6;
+            --text: #333333;
+            --panel-bg: #ffffff;
+            --card-bg: #fafafa;
+            --border: #dfe6e9;
+            --muted: #7f8c8d;
+            --muted-text: #666666;
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --input-bg: #ffffff;
+            --shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 80px; }
-        .container { padding: 15px; }
+        body.dark-mode {
+            --primary: #0f172a;
+            --accent: #60a5fa;
+            --bg: #0b1220;
+            --text: #e5e7eb;
+            --panel-bg: #111827;
+            --card-bg: #172033;
+            --border: #334155;
+            --muted: #94a3b8;
+            --muted-text: #cbd5e1;
+            --danger: #f87171;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --input-bg: #0f172a;
+            --shadow: 0 2px 10px rgba(0,0,0,0.30);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: 84px;
+            transition: background .2s ease, color .2s ease;
+        }
+
+        .container {
+            padding: 15px;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 1200;
+            border: none;
+            border-radius: 999px;
+            padding: 10px 14px;
+            background: var(--panel-bg);
+            color: var(--text);
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+        }
 
         .bottom-nav {
-            position: fixed; bottom: 0; width: 100%; background: var(--primary);
-            display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: var(--primary);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.18);
         }
-        .nav-item { color: #bdc3c7; background: none; border: none; font-size: 12px; cursor: pointer; text-align: center; }
-        .nav-item.active { color: var(--white); font-weight: bold; }
 
-        .header-date { background: var(--white); display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .panel { background: var(--white); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .panel h3 { margin: 0 0 10px 0; color: var(--accent); font-size: 1rem; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        
-        .card-func { background: #fafafa; border-left: 4px solid var(--accent); padding: 10px; margin: 8px 0; border-radius: 6px; }
-        .badge { font-size: 10px; background: #eee; padding: 2px 5px; border-radius: 4px; margin-right: 3px; font-weight: bold; }
+        .nav-item {
+            color: #bdc3c7;
+            background: none;
+            border: none;
+            font-size: 12px;
+            cursor: pointer;
+            text-align: center;
+        }
 
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 3px; color: #555; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
-        
-        .btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
-        .btn-success { background: var(--success); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-share { background: #25d366; color: white; } 
-        .btn-edit { background: var(--accent); color: white; padding: 5px 10px; width: auto; font-size: 11px; }
+        .nav-item.active {
+            color: #ffffff;
+            font-weight: bold;
+        }
 
-        .flex-row { display: flex; gap: 8px; }
-        .hidden { display: none; }
-        .item-gestao { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; }
-        
+        .header-date {
+            background: var(--panel-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 48px 0 15px;
+            box-shadow: var(--shadow);
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+            border: 1px solid transparent;
+        }
+
+        body.dark-mode .panel {
+            border-color: rgba(255,255,255,0.04);
+        }
+
+        .panel h3 {
+            margin: 0 0 10px 0;
+            color: var(--accent);
+            font-size: 1rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 6px;
+        }
+
+        .card-func {
+            background: var(--card-bg);
+            border-left: 4px solid var(--accent);
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+        }
+
+        .card-func.indisponivel {
+            border-left-color: var(--warning);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-meta {
+            font-size: 12px;
+            color: var(--muted-text);
+            margin-top: 4px;
+            line-height: 1.45;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            margin-left: 4px;
+            font-weight: bold;
+            display: inline-block;
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+
+        body.dark-mode .badge {
+            background: #334155;
+            color: #e5e7eb;
+        }
+
+        .badge.turno-dia {
+            background: #d6ecff;
+            color: #0b5fa5;
+        }
+
+        .badge.turno-noite {
+            background: #ddd6fe;
+            color: #5b21b6;
+        }
+
+        .badge.status {
+            background: #fdebd0;
+            color: #b9770e;
+        }
+
+        .badge.cargo {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: var(--muted-text);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text);
+        }
+
+        input::placeholder {
+            color: var(--muted);
+        }
+
+        input:focus, select:focus, button:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 6px;
+            font-size: 14px;
+        }
+
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-share { background: #25d366; color: #fff; }
+        .btn-secondary { background: #34495e; color: #fff; }
+        .btn-muted { background: var(--muted); color: #fff; }
+
+        .btn-edit {
+            background: var(--accent);
+            color: white;
+            padding: 6px 10px;
+            width: auto;
+            font-size: 11px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .btn-delete {
+            background: var(--danger);
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .item-gestao {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .item-gestao:last-child {
+            border-bottom: none;
+        }
+
+        .empty-state {
+            color: var(--muted);
+            font-size: 13px;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        .small-text {
+            font-size: 12px;
+            color: var(--muted-text);
+        }
+
+        .header-nav-btn {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .posto-input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .posto-input-row button {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .obs-select {
+            margin-top: 8px;
+            font-size: 12px;
+            width: 100%;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .action-row .btn {
+            flex: 1;
+            min-width: 160px;
+        }
+
         @media print {
-            .bottom-nav, .header-date, .btn { display: none !important; }
+            .bottom-nav,
+            .header-date button,
+            .btn,
+            .theme-toggle {
+                display: none !important;
+            }
+
+            body {
+                padding-bottom: 0;
+                background: white;
+                color: black;
+            }
+
+            .panel {
+                box-shadow: none;
+                border: 1px solid #ddd;
+                background: white;
+            }
         }
     </style>
 </head>
 <body>
+<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙 Escuro</button>
 
 <div id="view-postos" class="container">
     <div class="header-date">
-        <button onclick="mudarData(-1)" style="padding:10px; border-radius:8px; border:none; background:var(--accent); color:white">←</button>
-        <span id="label-data" style="font-weight: bold;"></span>
-        <button onclick="mudarData(1)" style="padding:10px; border-radius:8px; border:none; background:var(--accent); color:white">→</button>
+        <button class="header-nav-btn" onclick="mudarData(-1)" aria-label="Voltar um dia">←</button>
+        <span id="label-data" style="font-weight: bold; text-align:center; flex:1;"></span>
+        <button class="header-nav-btn" onclick="mudarData(1)" aria-label="Avançar um dia">→</button>
     </div>
 
-    <div class="panel"><h3>Supervisores</h3><div id="lista-sup"></div></div>
-    <div class="panel"><h3>Reservas</h3><div id="lista-res"></div></div>
-    <div class="panel"><h3>Geral (Postos)</h3><div id="lista-geral"></div></div>
-    
-    <button class="btn btn-share" onclick="compartilharRelatorio()">📤 COMPARTILHAR RELATÓRIO</button>
-    <button class="btn" style="background:#34495e; color:white" onclick="window.print()">🖨️ GERAR PDF</button>
+    <div class="panel">
+        <h3 id="titulo-sup">Supervisores</h3>
+        <div id="lista-sup"></div>
+    </div>
+
+    <div class="panel">
+        <h3 id="titulo-res">Reservas</h3>
+        <div id="lista-res"></div>
+    </div>
+
+    <div class="panel">
+        <h3 id="titulo-geral">Geral (Postos)</h3>
+        <div id="lista-geral"></div>
+    </div>
+
+    <div class="panel" id="panel-indisponiveis">
+        <h3 id="titulo-ind">Indisponíveis</h3>
+        <div id="lista-ind"></div>
+    </div>
+
+    <div class="action-row">
+        <button class="btn btn-share" onclick="compartilharRelatorio()">📤 COMPARTILHAR RELATÓRIO</button>
+        <button class="btn btn-secondary" onclick="gerarRelatorioPDF()">🖨️ RELATÓRIO PDF</button>
+    </div>
 </div>
 
 <div id="view-add" class="container hidden">
     <div class="panel">
         <h3 id="form-title">Adicionar Funcionário</h3>
         <input type="hidden" id="edit-id">
-        <div class="form-group"><label>Nome</label><input type="text" id="f-nome"></div>
-        <div class="flex-row">
-            <div class="form-group" style="flex:1"><label>Matrícula</label><input type="text" id="f-matr"></div>
-            <div class="form-group" style="flex:1"><label>Turno</label><select id="f-turno"><option>Dia</option><option>Noite</option></select></div>
+
+        <div class="form-group">
+            <label for="f-nome">Nome</label>
+            <input type="text" id="f-nome" placeholder="Nome completo">
         </div>
+
         <div class="flex-row">
-            <div class="form-group" style="flex:1"><label>Cargo</label>
-                <select id="f-cargo"><option value="reserva">Reserva</option><option value="fiscal">Fiscal</option><option value="inspetor">Inspetor</option><option value="lider">Líder</option><option value="asp">ASP</option></select>
+            <div class="form-group" style="flex:1">
+                <label for="f-matr">Matrícula</label>
+                <input type="text" id="f-matr" placeholder="Opcional">
             </div>
-            <div class="form-group" style="flex:1"><label>Escala</label>
+            <div class="form-group" style="flex:1">
+                <label for="f-turno">Turno</label>
+                <select id="f-turno">
+                    <option value="Dia">Dia</option>
+                    <option value="Noite">Noite</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="flex-row">
+            <div class="form-group" style="flex:1">
+                <label for="f-cargo">Cargo</label>
+                <select id="f-cargo">
+                    <option value="reserva">Reserva</option>
+                    <option value="fiscal">Fiscal</option>
+                    <option value="inspetor">Inspetor</option>
+                    <option value="lider">Líder</option>
+                    <option value="asp">ASP</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex:1">
+                <label for="f-escala">Escala</label>
                 <select id="f-escala">
                     <option value="12x36">12x36</option>
                     <option value="2x1">2x1</option>
@@ -88,175 +438,960 @@
                 </select>
             </div>
         </div>
-        <div class="form-group"><label>Posto</label><input type="text" id="f-posto" list="dl-postos"></div>
-        <div class="form-group"><label>Início da Escala (1º dia trabalhado)</label><input type="date" id="f-inicio"></div>
-        <div class="form-group"><label>Status Contratual</label>
-            <select id="f-status"><option value="Ativo">Ativo</option><option value="INSS">INSS</option><option value="Férias">Férias</option><option value="Afastado">Afastado</option></select>
+
+        <div class="form-group">
+            <label for="f-posto">Posto</label>
+            <input type="text" id="f-posto" list="dl-postos" placeholder="Digite ou selecione um posto">
         </div>
+
+        <div class="form-group">
+            <label for="f-inicio">Início da Escala (1º dia trabalhado)</label>
+            <input type="date" id="f-inicio">
+        </div>
+
+        <div class="form-group">
+            <label for="f-status">Status Contratual</label>
+            <select id="f-status">
+                <option value="Ativo">Ativo</option>
+                <option value="INSS">INSS</option>
+                <option value="Férias">Férias</option>
+                <option value="Afastado">Afastado</option>
+            </select>
+        </div>
+
         <button class="btn btn-success" onclick="salvarFuncionario()">SALVAR FUNCIONÁRIO</button>
-        <button class="btn hidden" id="btn-cancelar" style="background:#7f8c8d; color:white" onclick="resetForm()">CANCELAR</button>
+        <button class="btn btn-muted hidden" id="btn-cancelar" onclick="resetForm()">CANCELAR</button>
     </div>
 
-    <div class="panel"><h3>Funcionários Cadastrados</h3><div id="lista-cadastrados"></div></div>
-    
+    <div class="panel">
+        <h3>Funcionários Cadastrados</h3>
+        <div id="lista-cadastrados"></div>
+    </div>
+
     <div class="panel">
         <h3>Gestão de Postos</h3>
-        <div class="flex-row"><input type="text" id="novo-posto-input" placeholder="Novo Posto"><button onclick="addPosto()" style="background:var(--success); color:white; border:none; padding:10px; border-radius:8px">+</button></div>
-        <div id="lista-gestao-postos" style="margin-top:10px; max-height:150px; overflow-y:auto"></div>
+        <div class="posto-input-row">
+            <input type="text" id="novo-posto-input" placeholder="Novo Posto">
+            <button onclick="addPosto()">+</button>
+        </div>
+        <div id="lista-gestao-postos" style="margin-top:10px; max-height:180px; overflow-y:auto"></div>
     </div>
 </div>
 
 <datalist id="dl-postos"></datalist>
 
 <div class="bottom-nav">
-    <button class="nav-item active" id="tab1" onclick="tab('postos')"><div>📋</div>Postos</button>
-    <button class="nav-item" id="tab2" onclick="tab('add')"><div>➕</div>Add+</button>
+    <button class="nav-item active" id="tab1" onclick="tab('postos')">
+        <div>📋</div>
+        Postos
+    </button>
+    <button class="nav-item" id="tab2" onclick="tab('add')">
+        <div>➕</div>
+        Add+
+    </button>
 </div>
 
 <script>
-    const postosPadrao = ["10º TABELIONATO", "COLÉGIO DOM FELICIANO", "COLÉGIO STELLA MARIS", "COND ALPHAVILLE POA", "COND CASA 100", "COND MARIA VILAC", "COND SOLAR SEVILHA", "COND TREND NOVA CARLOS GOMES", "COND VINTAGE", "CONDOMINIO EDIFICIO FURRIEL", "CONDOMINIO SAINT MORITZ", "CONDOMÍNIO REBOUÇAS 180", "GERMANIA MALL", "INATIVO", "INATIVO (INSS)", "INSTITUTO RELIGIOSO BARBARA MAIX", "JOSAPAR (Menino Deus)", "JOSAPAR (TRAMANDAI)", "JOSAPAR (TORRES)", "JOSAPAR (TERESOPOLIS)", "JOSAPAR( CAPÃO DA CANOA )", "MedCenter", "PANVEL - 24 DE OUTUBRO", "PANVEL - ALVORADA", "PANVEL - ANITA GARIBALDI", "PANVEL - CASEMIRO DE ABREU", "PANVEL - MINI CD CAVALHADA", "PANVEL - MINI CD PROTÁSIO ALVES", "PANVEL - NILO PEÇANHA", "PANVEL - OSCAR PEREIRA", "PANVEL - PLÍNIO BRASIL MILANO", "PANVEL - TERESÓPOLIS", "PANVEL - VICENTE DA FONTOURA", "QUANTICA - RESERVA", "QUÂNTICA - ADMINISTRATIVO", "QUÂNTICA - OPERACIONAL", "SHOPPING JOÃO PESSOA", "VIVA OPEN MALL - MONITORAMENTO", "VIVA OPEN MALL - SEGURANÇA", "ZAFFARI - CABRAL", "ZAFFARI - CAVALHADA", "ZAFFARI - CESTTO GRAVATAI", "ZAFFARI - CESTTO PROTÁSIO", "ZAFFARI - CESTTO VIAMÃO", "ZAFFARI - CESTTO WENCESLAU ESCOBAR", "ZAFFARI - CRISTOVÃO COLOMBO", "ZAFFARI - FERNANDES VIEIRA", "ZAFFARI - IPANEMA", "ZAFFARI - LINDÓIA", "ZAFFARI - PROTÁSIO ALVES"];
+    const postosPadrao = [
+        "10º TABELIONATO", "COLÉGIO DOM FELICIANO", "COLÉGIO STELLA MARIS", "COND ALPHAVILLE POA",
+        "COND CASA 100", "COND MARIA VILAC", "COND SOLAR SEVILHA", "COND TREND NOVA CARLOS GOMES",
+        "COND VINTAGE", "CONDOMINIO EDIFICIO FURRIEL", "CONDOMINIO SAINT MORITZ", "CONDOMÍNIO REBOUÇAS 180",
+        "GERMANIA MALL", "INATIVO", "INATIVO (INSS)", "INSTITUTO RELIGIOSO BARBARA MAIX",
+        "JOSAPAR (Menino Deus)", "JOSAPAR (TRAMANDAI)", "JOSAPAR (TORRES)", "JOSAPAR (TERESOPOLIS)",
+        "JOSAPAR( CAPÃO DA CANOA )", "MedCenter", "PANVEL - 24 DE OUTUBRO", "PANVEL - ALVORADA",
+        "PANVEL - ANITA GARIBALDI", "PANVEL - CASEMIRO DE ABREU", "PANVEL - MINI CD CAVALHADA",
+        "PANVEL - MINI CD PROTÁSIO ALVES", "PANVEL - NILO PEÇANHA", "PANVEL - OSCAR PEREIRA",
+        "PANVEL - PLÍNIO BRASIL MILANO", "PANVEL - TERESÓPOLIS", "PANVEL - VICENTE DA FONTOURA",
+        "QUANTICA - RESERVA", "QUÂNTICA - ADMINISTRATIVO", "QUÂNTICA - OPERACIONAL",
+        "SHOPPING JOÃO PESSOA", "VIVA OPEN MALL - MONITORAMENTO", "VIVA OPEN MALL - SEGURANÇA",
+        "ZAFFARI - CABRAL", "ZAFFARI - CAVALHADA", "ZAFFARI - CESTTO GRAVATAI", "ZAFFARI - CESTTO PROTÁSIO",
+        "ZAFFARI - CESTTO VIAMÃO", "ZAFFARI - CESTTO WENCESLAU ESCOBAR", "ZAFFARI - CRISTOVÃO COLOMBO",
+        "ZAFFARI - FERNANDES VIEIRA", "ZAFFARI - IPANEMA", "ZAFFARI - LINDÓIA", "ZAFFARI - PROTÁSIO ALVES"
+    ];
 
-    let db_funcs = JSON.parse(localStorage.getItem('fg_funcs')) || [];
-    let db_postos = JSON.parse(localStorage.getItem('fg_postos')) || postosPadrao;
+    const STORAGE_KEYS = {
+        FUNCS: 'fg_funcs',
+        POSTOS: 'fg_postos',
+        OBS: 'fg_obs',
+        THEME: 'fg_theme'
+    };
+
+    function loadJSON(key, fallback) {
+        try {
+            const raw = localStorage.getItem(key);
+            return raw ? JSON.parse(raw) : fallback;
+        } catch {
+            return fallback;
+        }
+    }
+
+    let db_funcs = loadJSON(STORAGE_KEYS.FUNCS, []);
+    let db_postos = loadJSON(STORAGE_KEYS.POSTOS, postosPadrao);
+    let db_obs = loadJSON(STORAGE_KEYS.OBS, {});
     let dataRef = new Date();
-    dataRef.setHours(0,0,0,0);
 
-    function tab(v) {
-        document.getElementById('view-postos').classList.toggle('hidden', v !== 'postos');
-        document.getElementById('view-add').classList.toggle('hidden', v !== 'add');
-        document.getElementById('tab1').classList.toggle('active', v === 'postos');
-        document.getElementById('tab2').classList.toggle('active', v === 'add');
-        if(v === 'postos') renderEscala();
-        if(v === 'add') { renderCadastrados(); renderPostos(); }
+    dataRef.setHours(0, 0, 0, 0);
+
+    function saveFuncs() {
+        localStorage.setItem(STORAGE_KEYS.FUNCS, JSON.stringify(db_funcs));
+    }
+
+    function savePostos() {
+        localStorage.setItem(STORAGE_KEYS.POSTOS, JSON.stringify(db_postos));
+    }
+
+    function saveObs() {
+        localStorage.setItem(STORAGE_KEYS.OBS, JSON.stringify(db_obs));
+    }
+
+    function formatDateKey(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    function formatDateLabel(date) {
+        return date.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric'
+        });
+    }
+
+    function parseInputDateToUTC(dateStr) {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return new Date(Date.UTC(year, month - 1, day));
+    }
+
+    function localDateToUTC(date) {
+        return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    }
+
+    function diffDaysUTC(start, end) {
+        return Math.floor((end - start) / 86400000);
+    }
+
+    function normalizarTexto(v) {
+        return (v || '').trim();
+    }
+
+    function normalizarPosto(v) {
+        return normalizarTexto(v).toUpperCase();
+    }
+
+    function capitalizarCargo(cargo) {
+        const mapa = {
+            reserva: 'Reserva',
+            fiscal: 'Fiscal',
+            inspetor: 'Inspetor',
+            lider: 'Líder',
+            asp: 'ASP'
+        };
+        return mapa[cargo] || cargo;
+    }
+
+    function escaparHtml(valor = '') {
+        return String(valor)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function aplicarTema(tema) {
+        const dark = tema === 'dark';
+        document.body.classList.toggle('dark-mode', dark);
+        localStorage.setItem(STORAGE_KEYS.THEME, tema);
+        atualizarBotaoTema();
+    }
+
+    function atualizarBotaoTema() {
+        const btn = document.getElementById('theme-toggle');
+        const escuroAtivo = document.body.classList.contains('dark-mode');
+        btn.textContent = escuroAtivo ? '☀️ Claro' : '🌙 Escuro';
+    }
+
+    function toggleTheme() {
+        const escuroAtivo = document.body.classList.contains('dark-mode');
+        aplicarTema(escuroAtivo ? 'light' : 'dark');
+    }
+
+    function iniciarTema() {
+        const salvo = localStorage.getItem(STORAGE_KEYS.THEME);
+        if (salvo === 'dark' || salvo === 'light') {
+            aplicarTema(salvo);
+            return;
+        }
+
+        const prefereEscuro = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        aplicarTema(prefereEscuro ? 'dark' : 'light');
+    }
+
+    function tab(view) {
+        document.getElementById('view-postos').classList.toggle('hidden', view !== 'postos');
+        document.getElementById('view-add').classList.toggle('hidden', view !== 'add');
+        document.getElementById('tab1').classList.toggle('active', view === 'postos');
+        document.getElementById('tab2').classList.toggle('active', view === 'add');
+
+        if (view === 'postos') renderEscala();
+        if (view === 'add') {
+            renderCadastrados();
+            renderPostos();
+        }
     }
 
     function estaDeServico(f, dataAlvo) {
         if (!f.inicio) return true;
-        const inicio = new Date(f.inicio + "T00:00:00");
-        const alvo = new Date(dataAlvo);
-        alvo.setHours(0,0,0,0);
-        const diffDays = Math.floor((alvo - inicio) / (1000 * 60 * 60 * 24));
+
+        const inicioUTC = parseInputDateToUTC(f.inicio);
+        const alvoUTC = localDateToUTC(dataAlvo);
+        const diffDays = diffDaysUTC(inicioUTC, alvoUTC);
+
         if (diffDays < 0) return false;
 
-        // Lógica de Ciclos: (diffDays % CicloTotal) < DiasTrabalho
-        switch(f.escala) {
+        switch (f.escala) {
             case "12x36": return diffDays % 2 === 0;
-            case "2x1":   return diffDays % 3 < 2;
-            case "4x2":   return diffDays % 6 < 4;
-            case "5x1":   return diffDays % 6 < 5;
-            case "5x2":   const d = alvo.getDay(); return d !== 0 && d !== 6;
-            case "6x1":   return diffDays % 7 < 6;
-            case "6x2":   return diffDays % 8 < 6;
+            case "2x1": return diffDays % 3 < 2;
+            case "4x2": return diffDays % 6 < 4;
+            case "5x1": return diffDays % 6 < 5;
+            case "5x2": {
+                const diaSemana = dataAlvo.getDay();
+                return diaSemana !== 0 && diaSemana !== 6;
+            }
+            case "6x1": return diffDays % 7 < 6;
+            case "6x2": return diffDays % 8 < 6;
             default: return true;
         }
     }
 
-    function renderEscala() {
-        document.getElementById('label-data').innerText = dataRef.toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
-        const s = document.getElementById('lista-sup'), r = document.getElementById('lista-res'), g = document.getElementById('lista-geral');
-        s.innerHTML = ''; r.innerHTML = ''; g.innerHTML = '';
+    function getObsKey(funcId, date) {
+        return `${funcId}_${formatDateKey(date)}`;
+    }
 
-        const funcsNoDia = db_funcs.filter(f => estaDeServico(f, dataRef));
-        funcsNoDia.sort((a,b) => a.posto.localeCompare(b.posto)).forEach(f => {
-            const html = `<div class="card-func" data-nome="${f.nome}" data-posto="${f.posto}" data-cargo="${f.cargo}">
-                <div style="display:flex; justify-content:space-between"><strong>${f.nome}</strong><span class="badge">${f.turno}</span></div>
-                <div style="font-size:11px; color:#666; margin-top:3px">${f.posto} • ${f.escala} • <small>${f.status}</small></div>
-                <select class="obs-plantao" style="margin-top:8px; font-size:12px; width:100%">
-                    <option value="">Status...</option><option value="Falta">Falta</option><option value="Recolhido">Recolhido</option>
-                    <option value="Suspenso">Suspenso</option><option value="Atestado">Atestado</option>
-                    ${f.cargo === 'reserva' ? '<option value="Cobertura">Cobertura</option>' : ''}
-                </select>
-            </div>`;
-            if(f.cargo === 'fiscal' || f.cargo === 'inspetor') s.innerHTML += html;
-            else if(f.cargo === 'reserva') r.innerHTML += html;
-            else g.innerHTML += html;
+    function getObs(funcId, date) {
+        return db_obs[getObsKey(funcId, date)] || '';
+    }
+
+    function setObs(funcId, date, value) {
+        db_obs[getObsKey(funcId, date)] = value;
+        saveObs();
+    }
+
+    function ordenarFuncionarios(lista) {
+        return [...lista].sort((a, b) => {
+            const postoCompare = (a.posto || '').localeCompare(b.posto || '', 'pt-BR');
+            if (postoCompare !== 0) return postoCompare;
+            return (a.nome || '').localeCompare(b.nome || '', 'pt-BR');
         });
+    }
+
+    function obterDadosDoDia() {
+        const ativosNoDia = [];
+        const indisponiveis = [];
+
+        db_funcs.forEach(f => {
+            if (f.status !== 'Ativo') {
+                indisponiveis.push(f);
+                return;
+            }
+
+            if (estaDeServico(f, dataRef)) {
+                ativosNoDia.push(f);
+            }
+        });
+
+        const supervisores = [];
+        const reservas = [];
+        const geral = [];
+
+        ordenarFuncionarios(ativosNoDia).forEach(f => {
+            if (f.cargo === 'fiscal' || f.cargo === 'inspetor') supervisores.push(f);
+            else if (f.cargo === 'reserva') reservas.push(f);
+            else geral.push(f);
+        });
+
+        return {
+            supervisores,
+            reservas,
+            geral,
+            indisponiveis: ordenarFuncionarios(indisponiveis)
+        };
+    }
+
+    function limparContainer(el) {
+        while (el.firstChild) el.removeChild(el.firstChild);
+    }
+
+    function criarEmptyState(texto) {
+        const div = document.createElement('div');
+        div.className = 'empty-state';
+        div.textContent = texto;
+        return div;
+    }
+
+    function criarBadge(texto, classeExtra = '') {
+        const span = document.createElement('span');
+        span.className = `badge ${classeExtra}`.trim();
+        span.textContent = texto;
+        return span;
+    }
+
+    function criarCardFuncionario(f, permitirObservacao = true) {
+        const card = document.createElement('div');
+        card.className = 'card-func';
+
+        const top = document.createElement('div');
+        top.className = 'card-top';
+
+        const nome = document.createElement('strong');
+        nome.textContent = f.nome;
+
+        const badges = document.createElement('div');
+        badges.appendChild(criarBadge(f.turno, f.turno === 'Noite' ? 'turno-noite' : 'turno-dia'));
+        badges.appendChild(criarBadge(capitalizarCargo(f.cargo), 'cargo'));
+
+        top.appendChild(nome);
+        top.appendChild(badges);
+
+        const meta = document.createElement('div');
+        meta.className = 'card-meta';
+        meta.textContent = `${f.posto} • ${f.escala} • ${f.status}`;
+
+        card.appendChild(top);
+        card.appendChild(meta);
+
+        if (permitirObservacao) {
+            const select = document.createElement('select');
+            select.className = 'obs-select';
+            select.setAttribute('aria-label', `Observação de plantão para ${f.nome}`);
+
+            const opcoes = [
+                { value: '', label: 'Status...' },
+                { value: 'Falta', label: 'Falta' },
+                { value: 'Recolhido', label: 'Recolhido' },
+                { value: 'Suspenso', label: 'Suspenso' },
+                { value: 'Atestado', label: 'Atestado' }
+            ];
+
+            if (f.cargo === 'reserva') {
+                opcoes.push({ value: 'Cobertura', label: 'Cobertura' });
+            }
+
+            opcoes.forEach(op => {
+                const option = document.createElement('option');
+                option.value = op.value;
+                option.textContent = op.label;
+                select.appendChild(option);
+            });
+
+            select.value = getObs(f.id, dataRef);
+            select.addEventListener('change', (e) => {
+                setObs(f.id, dataRef, e.target.value);
+            });
+
+            card.appendChild(select);
+        }
+
+        return card;
+    }
+
+    function criarCardIndisponivel(f) {
+        const card = document.createElement('div');
+        card.className = 'card-func indisponivel';
+
+        const top = document.createElement('div');
+        top.className = 'card-top';
+
+        const nome = document.createElement('strong');
+        nome.textContent = f.nome;
+
+        const badges = document.createElement('div');
+        badges.appendChild(criarBadge(f.status, 'status'));
+        badges.appendChild(criarBadge(capitalizarCargo(f.cargo), 'cargo'));
+
+        top.appendChild(nome);
+        top.appendChild(badges);
+
+        const meta = document.createElement('div');
+        meta.className = 'card-meta';
+        meta.textContent = `${f.posto} • ${f.turno} • ${f.escala}`;
+
+        card.appendChild(top);
+        card.appendChild(meta);
+
+        return card;
+    }
+
+    function renderLista(containerId, lista, permitirObservacao = true, vazio = 'Nenhum funcionário encontrado.') {
+        const container = document.getElementById(containerId);
+        limparContainer(container);
+
+        if (!lista.length) {
+            container.appendChild(criarEmptyState(vazio));
+            return;
+        }
+
+        const frag = document.createDocumentFragment();
+        lista.forEach(f => frag.appendChild(criarCardFuncionario(f, permitirObservacao)));
+        container.appendChild(frag);
+    }
+
+    function renderListaIndisponiveis(containerId, lista) {
+        const container = document.getElementById(containerId);
+        limparContainer(container);
+
+        if (!lista.length) {
+            container.appendChild(criarEmptyState('Nenhum funcionário indisponível.'));
+            return;
+        }
+
+        const frag = document.createDocumentFragment();
+        lista.forEach(f => frag.appendChild(criarCardIndisponivel(f)));
+        container.appendChild(frag);
+    }
+
+    function atualizarTituloPainel(id, tituloBase, total) {
+        document.getElementById(id).textContent = `${tituloBase} (${total})`;
+    }
+
+    function renderEscala() {
+        document.getElementById('label-data').textContent = formatDateLabel(dataRef);
+
+        const dados = obterDadosDoDia();
+
+        renderLista('lista-sup', dados.supervisores, true, 'Nenhum supervisor escalado.');
+        renderLista('lista-res', dados.reservas, true, 'Nenhum reserva escalado.');
+        renderLista('lista-geral', dados.geral, true, 'Nenhum funcionário escalado.');
+        renderListaIndisponiveis('lista-ind', dados.indisponiveis);
+
+        atualizarTituloPainel('titulo-sup', 'Supervisores', dados.supervisores.length);
+        atualizarTituloPainel('titulo-res', 'Reservas', dados.reservas.length);
+        atualizarTituloPainel('titulo-geral', 'Geral (Postos)', dados.geral.length);
+        atualizarTituloPainel('titulo-ind', 'Indisponíveis', dados.indisponiveis.length);
+
+        document.getElementById('panel-indisponiveis').classList.toggle('hidden', dados.indisponiveis.length === 0);
     }
 
     function renderPostos() {
-        const dl = document.getElementById('dl-postos'), list = document.getElementById('lista-gestao-postos');
-        dl.innerHTML = ''; list.innerHTML = '';
-        db_postos.sort().forEach(p => {
-            dl.innerHTML += `<option value="${p}">`;
-            list.innerHTML += `<div class="item-gestao"><span>${p}</span><button onclick="delPosto('${p}')" style="color:red; background:none; border:none; font-weight:bold">X</button></div>`;
+        const dl = document.getElementById('dl-postos');
+        const list = document.getElementById('lista-gestao-postos');
+
+        limparContainer(dl);
+        limparContainer(list);
+
+        const postosOrdenados = [...db_postos].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+        if (!postosOrdenados.length) {
+            list.appendChild(criarEmptyState('Nenhum posto cadastrado.'));
+            return;
+        }
+
+        const dlFrag = document.createDocumentFragment();
+        const listFrag = document.createDocumentFragment();
+
+        postosOrdenados.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p;
+            dlFrag.appendChild(option);
+
+            const row = document.createElement('div');
+            row.className = 'item-gestao';
+
+            const span = document.createElement('span');
+            span.textContent = p;
+
+            const btn = document.createElement('button');
+            btn.textContent = 'X';
+            btn.style.color = 'red';
+            btn.style.background = 'none';
+            btn.style.border = 'none';
+            btn.style.fontWeight = 'bold';
+            btn.style.cursor = 'pointer';
+            btn.addEventListener('click', () => delPosto(p));
+
+            row.appendChild(span);
+            row.appendChild(btn);
+            listFrag.appendChild(row);
         });
+
+        dl.appendChild(dlFrag);
+        list.appendChild(listFrag);
     }
 
     function addPosto() {
-        const p = document.getElementById('novo-posto-input').value.toUpperCase().trim();
-        if(p && !db_postos.includes(p)) { db_postos.push(p); localStorage.setItem('fg_postos', JSON.stringify(db_postos)); renderPostos(); document.getElementById('novo-posto-input').value = ''; }
+        const input = document.getElementById('novo-posto-input');
+        const p = normalizarPosto(input.value);
+
+        if (!p) {
+            alert('Informe um posto válido.');
+            return;
+        }
+
+        if (db_postos.includes(p)) {
+            alert('Esse posto já existe.');
+            return;
+        }
+
+        db_postos.push(p);
+        savePostos();
+        renderPostos();
+        input.value = '';
     }
 
-    function delPosto(p) { if(confirm("Excluir posto?")) { db_postos = db_postos.filter(x => x !== p); localStorage.setItem('fg_postos', JSON.stringify(db_postos)); renderPostos(); }}
+    function delPosto(posto) {
+        const postoEmUso = db_funcs.some(f => f.posto === posto);
+
+        if (postoEmUso) {
+            alert('Não é possível excluir este posto porque ele está vinculado a um ou mais funcionários.');
+            return;
+        }
+
+        if (!confirm(`Excluir o posto "${posto}"?`)) return;
+
+        db_postos = db_postos.filter(p => p !== posto);
+        savePostos();
+        renderPostos();
+    }
 
     async function compartilharRelatorio() {
-        let texto = `*FORTGUARD - ESCALA ${dataRef.toLocaleDateString('pt-BR')}*\n\n`;
-        document.querySelectorAll('.panel').forEach(panel => {
-            const titulo = panel.querySelector('h3').innerText;
-            const cards = panel.querySelectorAll('.card-func');
-            if(cards.length > 0) {
-                texto += `*${titulo.toUpperCase()}*\n`;
-                cards.forEach(c => {
-                    const obs = c.querySelector('.obs-plantao').value;
-                    texto += `- ${c.dataset.nome} (${c.dataset.posto})${obs ? ' -> ' + obs : ''}\n`;
-                });
-                texto += `\n`;
+        const dados = obterDadosDoDia();
+        const dataTexto = dataRef.toLocaleDateString('pt-BR');
+        let texto = `*FORTGUARD - ESCALA ${dataTexto}*\n\n`;
+
+        function appendSecao(titulo, lista, comObs = true) {
+            if (!lista.length) return;
+
+            texto += `*${titulo.toUpperCase()} (${lista.length})*\n`;
+
+            lista.forEach(f => {
+                const obs = comObs ? getObs(f.id, dataRef) : '';
+                let linha = `- ${f.nome} (${f.posto}) | ${f.turno} | ${capitalizarCargo(f.cargo)}`;
+
+                if (!comObs) {
+                    linha += ` | ${f.status}`;
+                } else if (obs) {
+                    linha += ` -> ${obs}`;
+                }
+
+                texto += linha + '\n';
+            });
+
+            texto += '\n';
+        }
+
+        appendSecao('Supervisores', dados.supervisores, true);
+        appendSecao('Reservas', dados.reservas, true);
+        appendSecao('Geral', dados.geral, true);
+        appendSecao('Indisponíveis', dados.indisponiveis, false);
+
+        try {
+            if (navigator.share) {
+                await navigator.share({ text: texto });
+                return;
             }
-        });
-        if (navigator.share) await navigator.share({ text: texto });
-        else { navigator.clipboard.writeText(texto); alert("Copiado!"); }
+
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(texto);
+                alert('Relatório copiado para a área de transferência!');
+                return;
+            }
+
+            const area = document.createElement('textarea');
+            area.value = texto;
+            document.body.appendChild(area);
+            area.select();
+            document.execCommand('copy');
+            document.body.removeChild(area);
+            alert('Relatório copiado para a área de transferência!');
+        } catch (e) {
+            alert('Não foi possível compartilhar o relatório.');
+        }
     }
 
-    function mudarData(d) { dataRef.setDate(dataRef.getDate() + d); renderEscala(); }
+    function gerarTabelaPDF(titulo, lista, tipo = 'ativos') {
+        const ultimaColuna = tipo === 'ativos' ? 'Observação' : 'Status';
+
+        if (!lista.length) {
+            return `
+                <section class="secao">
+                    <h2>${escaparHtml(titulo)}</h2>
+                    <div class="vazio">Nenhum registro nesta seção.</div>
+                </section>
+            `;
+        }
+
+        const rows = lista.map(f => {
+            const ultimaInfo = tipo === 'ativos'
+                ? (getObs(f.id, dataRef) || '-')
+                : (f.status || '-');
+
+            return `
+                <tr>
+                    <td>${escaparHtml(f.nome)}</td>
+                    <td>${escaparHtml(f.matr || '-')}</td>
+                    <td>${escaparHtml(f.posto || '-')}</td>
+                    <td>${escaparHtml(f.turno || '-')}</td>
+                    <td>${escaparHtml(capitalizarCargo(f.cargo) || '-')}</td>
+                    <td>${escaparHtml(f.escala || '-')}</td>
+                    <td>${escaparHtml(ultimaInfo)}</td>
+                </tr>
+            `;
+        }).join('');
+
+        return `
+            <section class="secao">
+                <h2>${escaparHtml(titulo)} (${lista.length})</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Matrícula</th>
+                            <th>Posto</th>
+                            <th>Turno</th>
+                            <th>Cargo</th>
+                            <th>Escala</th>
+                            <th>${ultimaColuna}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            </section>
+        `;
+    }
+
+    function gerarRelatorioPDF() {
+        const dados = obterDadosDoDia();
+        const dataTitulo = formatDateLabel(dataRef);
+        const geradoEm = new Date().toLocaleString('pt-BR');
+
+        const html = `
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>FortGuard - Relatório ${escaparHtml(formatDateKey(dataRef))}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 14mm;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #1f2937;
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .topo {
+            border-bottom: 2px solid #1e3a8a;
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+        }
+
+        .topo h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #1e3a8a;
+        }
+
+        .topo .sub {
+            margin-top: 4px;
+            color: #4b5563;
+            font-size: 12px;
+        }
+
+        .resumo {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .box {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 10px;
+            background: #f8fafc;
+        }
+
+        .box .label {
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+
+        .box .valor {
+            font-size: 20px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .secao {
+            margin-bottom: 18px;
+        }
+
+        .secao h2 {
+            margin: 0 0 8px 0;
+            font-size: 15px;
+            color: #0f172a;
+            border-bottom: 1px solid #d1d5db;
+            padding-bottom: 4px;
+        }
+
+        .vazio {
+            padding: 10px 0;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        th, td {
+            border: 1px solid #d1d5db;
+            padding: 7px 6px;
+            vertical-align: top;
+            word-wrap: break-word;
+            font-size: 11px;
+        }
+
+        th {
+            background: #e5e7eb;
+            text-align: left;
+        }
+
+        .rodape {
+            margin-top: 18px;
+            padding-top: 10px;
+            border-top: 1px solid #d1d5db;
+            color: #6b7280;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="topo">
+        <h1>FortGuard - Relatório de Escala</h1>
+        <div class="sub"><strong>Data da escala:</strong> ${escaparHtml(dataTitulo)}</div>
+        <div class="sub"><strong>Gerado em:</strong> ${escaparHtml(geradoEm)}</div>
+    </div>
+
+    <div class="resumo">
+        <div class="box">
+            <div class="label">Supervisores</div>
+            <div class="valor">${dados.supervisores.length}</div>
+        </div>
+        <div class="box">
+            <div class="label">Reservas</div>
+            <div class="valor">${dados.reservas.length}</div>
+        </div>
+        <div class="box">
+            <div class="label">Geral</div>
+            <div class="valor">${dados.geral.length}</div>
+        </div>
+        <div class="box">
+            <div class="label">Indisponíveis</div>
+            <div class="valor">${dados.indisponiveis.length}</div>
+        </div>
+    </div>
+
+    ${gerarTabelaPDF('Supervisores', dados.supervisores, 'ativos')}
+    ${gerarTabelaPDF('Reservas', dados.reservas, 'ativos')}
+    ${gerarTabelaPDF('Geral (Postos)', dados.geral, 'ativos')}
+    ${gerarTabelaPDF('Indisponíveis', dados.indisponiveis, 'indisponiveis')}
+
+    <div class="rodape">
+        Relatório gerado automaticamente pelo sistema FortGuard.
+    </div>
+
+    <script>
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 300);
+        };
+    </script>
+</body>
+</html>
+        `;
+
+        const pdfWindow = window.open('', '_blank');
+        if (!pdfWindow) {
+            alert('O navegador bloqueou a abertura do relatório. Permita pop-ups para gerar o PDF.');
+            return;
+        }
+
+        pdfWindow.document.open();
+        pdfWindow.document.write(html);
+        pdfWindow.document.close();
+    }
+
+    function mudarData(dias) {
+        dataRef.setDate(dataRef.getDate() + dias);
+        renderEscala();
+    }
 
     function salvarFuncionario() {
+        const editId = document.getElementById('edit-id').value;
+
         const f = {
-            id: document.getElementById('edit-id').value || Date.now().toString(),
-            nome: document.getElementById('f-nome').value,
-            matr: document.getElementById('f-matr').value,
+            id: editId || Date.now().toString(),
+            nome: normalizarTexto(document.getElementById('f-nome').value),
+            matr: normalizarTexto(document.getElementById('f-matr').value),
             turno: document.getElementById('f-turno').value,
             cargo: document.getElementById('f-cargo').value,
             escala: document.getElementById('f-escala').value,
-            posto: document.getElementById('f-posto').value,
+            posto: normalizarPosto(document.getElementById('f-posto').value),
             inicio: document.getElementById('f-inicio').value,
             status: document.getElementById('f-status').value
         };
-        if(!f.nome || !f.posto || !f.inicio) return alert("Preencha os campos!");
+
+        if (!f.nome || !f.posto || !f.inicio) {
+            alert('Preencha pelo menos Nome, Posto e Início da Escala.');
+            return;
+        }
+
+        if (f.matr && db_funcs.some(x => x.matr === f.matr && x.id !== f.id)) {
+            alert('Já existe um funcionário com essa matrícula.');
+            return;
+        }
+
+        if (!db_postos.includes(f.posto)) {
+            db_postos.push(f.posto);
+            savePostos();
+        }
+
         const idx = db_funcs.findIndex(x => x.id === f.id);
-        if(idx > -1) db_funcs[idx] = f; else db_funcs.push(f);
-        localStorage.setItem('fg_funcs', JSON.stringify(db_funcs));
-        resetForm(); tab('postos');
+        if (idx > -1) db_funcs[idx] = f;
+        else db_funcs.push(f);
+
+        saveFuncs();
+        resetForm();
+        renderCadastrados();
+        renderPostos();
+        renderEscala();
+        tab('postos');
     }
 
     function renderCadastrados() {
-        document.getElementById('lista-cadastrados').innerHTML = db_funcs.map(f => `
-            <div class="item-gestao">
-                <div><strong>${f.nome}</strong><br><small>${f.posto}</small></div>
-                <div><button class="btn-edit" onclick="editarFunc('${f.id}')">Alt</button>
-                <button class="btn-edit" style="background:red" onclick="excluirFunc('${f.id}')">X</button></div>
-            </div>`).join('');
+        const container = document.getElementById('lista-cadastrados');
+        limparContainer(container);
+
+        if (!db_funcs.length) {
+            container.appendChild(criarEmptyState('Nenhum funcionário cadastrado.'));
+            return;
+        }
+
+        const lista = [...db_funcs].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        const frag = document.createDocumentFragment();
+
+        lista.forEach(f => {
+            const item = document.createElement('div');
+            item.className = 'item-gestao';
+
+            const info = document.createElement('div');
+
+            const strong = document.createElement('strong');
+            strong.textContent = f.nome;
+
+            const detalhe = document.createElement('div');
+            detalhe.className = 'small-text';
+            detalhe.textContent = `${f.posto} • ${capitalizarCargo(f.cargo)} • ${f.status}`;
+
+            info.appendChild(strong);
+            info.appendChild(detalhe);
+
+            const actions = document.createElement('div');
+
+            const btnEdit = document.createElement('button');
+            btnEdit.className = 'btn-edit';
+            btnEdit.textContent = 'Alt';
+            btnEdit.addEventListener('click', () => editarFunc(f.id));
+
+            const btnDelete = document.createElement('button');
+            btnDelete.className = 'btn-edit btn-delete';
+            btnDelete.textContent = 'X';
+            btnDelete.addEventListener('click', () => excluirFunc(f.id));
+
+            actions.appendChild(btnEdit);
+            actions.appendChild(btnDelete);
+
+            item.appendChild(info);
+            item.appendChild(actions);
+
+            frag.appendChild(item);
+        });
+
+        container.appendChild(frag);
     }
 
     function editarFunc(id) {
-        const f = db_funcs.find(x => x.id == id);
+        const f = db_funcs.find(x => x.id === id);
+        if (!f) return;
+
         document.getElementById('edit-id').value = f.id;
-        document.getElementById('f-nome').value = f.nome;
-        document.getElementById('f-matr').value = f.matr;
-        document.getElementById('f-posto').value = f.posto;
-        document.getElementById('f-inicio').value = f.inicio;
-        document.getElementById('f-escala').value = f.escala;
-        document.getElementById('f-cargo').value = f.cargo;
-        document.getElementById('f-turno').value = f.turno;
-        document.getElementById('f-status').value = f.status;
-        document.getElementById('form-title').innerText = "Editando...";
+        document.getElementById('f-nome').value = f.nome || '';
+        document.getElementById('f-matr').value = f.matr || '';
+        document.getElementById('f-posto').value = f.posto || '';
+        document.getElementById('f-inicio').value = f.inicio || '';
+        document.getElementById('f-escala').value = f.escala || '12x36';
+        document.getElementById('f-cargo').value = f.cargo || 'reserva';
+        document.getElementById('f-turno').value = f.turno || 'Dia';
+        document.getElementById('f-status').value = f.status || 'Ativo';
+
+        document.getElementById('form-title').textContent = 'Editando Funcionário';
         document.getElementById('btn-cancelar').classList.remove('hidden');
+
+        tab('add');
     }
 
-    function excluirFunc(id) { if(confirm("Excluir?")) { db_funcs = db_funcs.filter(x => x.id != id); localStorage.setItem('fg_funcs', JSON.stringify(db_funcs)); renderCadastrados(); }}
-    function resetForm() { document.getElementById('edit-id').value = ''; document.querySelectorAll('#view-add input').forEach(i => i.value = ''); document.getElementById('btn-cancelar').classList.add('hidden'); }
+    function excluirFunc(id) {
+        const f = db_funcs.find(x => x.id === id);
+        if (!f) return;
 
+        if (!confirm(`Excluir "${f.nome}"?`)) return;
+
+        db_funcs = db_funcs.filter(x => x.id !== id);
+
+        Object.keys(db_obs).forEach(key => {
+            if (key.startsWith(id + '_')) delete db_obs[key];
+        });
+
+        saveFuncs();
+        saveObs();
+        renderCadastrados();
+        renderEscala();
+        resetForm();
+    }
+
+    function resetForm() {
+        document.getElementById('edit-id').value = '';
+        document.getElementById('f-nome').value = '';
+        document.getElementById('f-matr').value = '';
+        document.getElementById('f-posto').value = '';
+        document.getElementById('f-inicio').value = '';
+        document.getElementById('f-turno').value = 'Dia';
+        document.getElementById('f-cargo').value = 'reserva';
+        document.getElementById('f-escala').value = '12x36';
+        document.getElementById('f-status').value = 'Ativo';
+        document.getElementById('form-title').textContent = 'Adicionar Funcionário';
+        document.getElementById('btn-cancelar').classList.add('hidden');
+    }
+
+    iniciarTema();
     renderEscala();
     renderPostos();
+    renderCadastrados();
+    resetForm();
 </script>
 </body>
 </html>
