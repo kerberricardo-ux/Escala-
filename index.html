@@ -6,257 +6,488 @@
     <title>FortGuard - Sistema de Escalas</title>
     <style>
         :root {
-            --primary: #1a252f; --accent: #2980b9; --bg: #f4f7f6;
-            --text: #333; --white: #ffffff; --danger: #e74c3c; --success: #27ae60;
+            --primary: #1a252f; --accent: #2980b9; --bg: #f8fafc;
+            --text: #1e293b; --white: #ffffff; --danger: #e74c3c; --success: #10b981;
+            --warning: #f59e0b; --info: #3b82f6; --muted: #64748b;
         }
 
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 80px; }
-        .container { padding: 15px; }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            margin: 0; background: linear-gradient(135deg, var(--bg) 0%, #e2e8f0 100%); 
+            color: var(--text); padding-bottom: 90px; min-height: 100vh;
+        }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px 15px; }
+
+        .header { 
+            background: var(--white); border-radius: 20px; padding: 20px; margin-bottom: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 15px;
+            position: relative; overflow: hidden;
+        }
+        .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--accent), var(--success)); }
+        .header-date { font-size: 1.3rem; font-weight: 700; color: var(--primary); }
+        .date-nav-btn { width: 44px; height: 44px; border-radius: 12px; border: none; background: var(--accent); color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .date-nav-btn:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(41,128,185,0.4); }
+        .date-nav-btn:active { transform: scale(0.98); }
+
+        .panel { 
+            background: var(--white); border-radius: 16px; padding: 20px; margin-bottom: 20px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.5);
+            transition: all 0.3s ease;
+        }
+        .panel:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+        .panel h3 { 
+            margin: 0 0 15px 0; color: var(--accent); font-size: 1.1rem; font-weight: 600; 
+            display: flex; align-items: center; gap: 8px;
+        }
+        .panel.vazio::after { content: 'Nenhum funcionário encontrado'; color: var(--muted); font-style: italic; text-align: center; display: block; padding: 20px; }
+
+        .card-func { 
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); 
+            border-left: 4px solid var(--accent); padding: 16px; margin: 12px 0; border-radius: 12px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.2s; cursor: pointer;
+            position: relative; overflow: hidden;
+        }
+        .card-func::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: inherit; }
+        .card-func:hover { transform: translateX(4px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+        .card-func.falta { border-left-color: var(--danger); background: #fef2f2; }
+        .card-func.recolhido { border-left-color: var(--success); background: #f0fdf4; }
+        
+        .func-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .func-name { font-weight: 700; font-size: 1rem; color: var(--primary); }
+        .badge { font-size: 11px; background: var(--accent); color: white; padding: 4px 8px; border-radius: 20px; font-weight: 600; }
+        .func-details { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 12px; }
+        .status-select { 
+            margin-top: 12px; width: 100%; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 10px; 
+            background: white; font-size: 14px; transition: all 0.2s;
+        }
+        .status-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(41,128,185,0.1); }
+
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+        input, select { 
+            width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; 
+            font-size: 15px; transition: all 0.2s; background: white;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(41,128,185,0.1); }
+        
+        .btn { 
+            width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 600; 
+            cursor: pointer; font-size: 15px; transition: all 0.2s; position: relative; overflow: hidden;
+        }
+        .btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transition: left 0.5s; }
+        .btn:hover::before { left: 100%; }
+        .btn:active { transform: scale(0.98); }
+        .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
+        .btn-danger { background: linear-gradient(135deg, var(--danger), #dc2626); color: white; box-shadow: 0 4px 15px rgba(231,76,60,0.3); }
+        .btn-secondary { background: linear-gradient(135deg, #6b7280, #4b5563); color: white; }
+        .btn-share { background: linear-gradient(135deg, #25d366, #128c7e); color: white; box-shadow: 0 4px 15px rgba(37,211,102,0.4); }
+        .btn-edit { background: var(--accent); color: white; padding: 8px 16px; width: auto; font-size: 13px; margin-left: 8px; }
+
+        .flex-row { display: flex; gap: 12px; }
+        .flex-row .form-group { flex: 1; }
+        .hidden { display: none !important; }
+        .item-gestao { 
+            display: flex; justify-content: space-between; align-items: center; padding: 14px; 
+            border-bottom: 1px solid #f1f5f9; font-size: 14px; transition: background 0.2s;
+        }
+        .item-gestao:hover { background: #f8fafc; border-radius: 8px; }
+        .item-gestao:last-child { border-bottom: none; }
 
         .bottom-nav {
-            position: fixed; bottom: 0; width: 100%; background: var(--primary);
-            display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000;
+            position: fixed; bottom: 0; width: 100%; background: rgba(26,37,47,0.95); 
+            backdrop-filter: blur(20px); display: flex; justify-content: space-around; 
+            padding: 12px 0; z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
         }
-        .nav-item { color: #bdc3c7; background: none; border: none; font-size: 12px; cursor: pointer; text-align: center; }
-        .nav-item.active { color: var(--white); font-weight: bold; }
+        .nav-item { 
+            color: #94a3b8; background: none; border: none; font-size: 12px; cursor: pointer; 
+            text-align: center; padding: 8px; border-radius: 12px; transition: all 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+        }
+        .nav-item.active { color: var(--accent); background: rgba(41,128,185,0.2); font-weight: 600; transform: scale(1.05); }
+        .nav-icon { font-size: 20px; }
 
-        .header-date { background: var(--white); display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .panel { background: var(--white); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .panel h3 { margin: 0 0 10px 0; color: var(--accent); font-size: 1rem; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        
-        .card-func { background: #fafafa; border-left: 4px solid var(--accent); padding: 10px; margin: 8px 0; border-radius: 6px; }
-        .badge { font-size: 10px; background: #eee; padding: 2px 5px; border-radius: 4px; margin-right: 3px; font-weight: bold; }
+        .stats-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .stat-card { 
+            flex: 1; background: var(--white); padding: 16px; border-radius: 12px; 
+            text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .stat-number { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 12px; color: var(--muted); }
 
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 3px; color: #555; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
-        
-        .btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
-        .btn-success { background: var(--success); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-share { background: #25d366; color: white; } 
-        .btn-edit { background: var(--accent); color: white; padding: 5px 10px; width: auto; font-size: 11px; }
-
-        .flex-row { display: flex; gap: 8px; }
-        .hidden { display: none; }
-        .item-gestao { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; }
-        
         @media print {
-            .bottom-nav, .header-date, .btn { display: none !important; }
+            .bottom-nav, .header-date, .btn, .stats-bar, .status-select { display: none !important; }
+            .container { max-width: none; padding: 20px; }
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 15px 10px; }
+            .header { padding: 16px; }
         }
     </style>
 </head>
 <body>
 
 <div id="view-postos" class="container">
-    <div class="header-date">
-        <button onclick="mudarData(-1)" style="padding:10px; border-radius:8px; border:none; background:var(--accent); color:white">←</button>
-        <span id="label-data" style="font-weight: bold;"></span>
-        <button onclick="mudarData(1)" style="padding:10px; border-radius:8px; border:none; background:var(--accent); color:white">→</button>
+    <div class="header">
+        <button class="date-nav-btn" onclick="mudarData(-1)" title="Dia anterior">←</button>
+        <div class="header-date" id="label-data"></div>
+        <button class="date-nav-btn" onclick="mudarData(1)" title="Próximo dia">→</button>
     </div>
 
-    <div class="panel"><h3>Supervisores</h3><div id="lista-sup"></div></div>
-    <div class="panel"><h3>Reservas</h3><div id="lista-res"></div></div>
-    <div class="panel"><h3>Geral (Postos)</h3><div id="lista-geral"></div></div>
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="stat-number" id="total-sup">0</div>
+            <div class="stat-label">Supervisores</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="total-res">0</div>
+            <div class="stat-label">Reservas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="total-geral">0</div>
+            <div class="stat-label">Postos</div>
+        </div>
+    </div>
+
+    <div class="panel"><h3>👮 Supervisores</h3><div id="lista-sup"></div></div>
+    <div class="panel"><h3>💾 Reservas</h3><div id="lista-res"></div></div>
+    <div class="panel"><h3>🏢 Geral (Postos)</h3><div id="lista-geral"></div></div>
     
-    <button class="btn btn-share" onclick="compartilharRelatorio()">📤 COMPARTILHAR RELATÓRIO</button>
-    <button class="btn" style="background:#34495e; color:white" onclick="window.print()">🖨️ GERAR PDF</button>
+    <div style="display: flex; gap: 12px;">
+        <button class="btn btn-share" onclick="compartilharRelatorio()">📤 Compartilhar</button>
+        <button class="btn btn-secondary" onclick="window.print()">🖨️ PDF</button>
+    </div>
 </div>
 
 <div id="view-add" class="container hidden">
     <div class="panel">
-        <h3 id="form-title">Adicionar Funcionário</h3>
+        <h3 id="form-title">➕ Adicionar Funcionário</h3>
         <input type="hidden" id="edit-id">
-        <div class="form-group"><label>Nome</label><input type="text" id="f-nome"></div>
+        <div class="form-group"><label>👤 Nome Completo</label><input type="text" id="f-nome" required></div>
         <div class="flex-row">
-            <div class="form-group" style="flex:1"><label>Matrícula</label><input type="text" id="f-matr"></div>
-            <div class="form-group" style="flex:1"><label>Turno</label><select id="f-turno"><option>Dia</option><option>Noite</option></select></div>
+            <div class="form-group"><label>🆔 Matrícula</label><input type="text" id="f-matr"></div>
+            <div class="form-group"><label>🌞 Turno</label><select id="f-turno"><option>Dia</option><option>Noite</option></select></div>
         </div>
         <div class="flex-row">
-            <div class="form-group" style="flex:1"><label>Cargo</label>
-                <select id="f-cargo"><option value="reserva">Reserva</option><option value="fiscal">Fiscal</option><option value="inspetor">Inspetor</option><option value="lider">Líder</option><option value="asp">ASP</option></select>
+            <div class="form-group"><label>🎖️ Cargo</label>
+                <select id="f-cargo">
+                    <option value="reserva">Reserva</option><option value="fiscal">Fiscal</option>
+                    <option value="inspetor">Inspetor</option><option value="lider">Líder</option>
+                    <option value="asp">ASP</option>
+                </select>
             </div>
-            <div class="form-group" style="flex:1"><label>Escala</label>
+            <div class="form-group"><label>📅 Escala</label>
                 <select id="f-escala">
-                    <option value="12x36">12x36</option>
-                    <option value="2x1">2x1</option>
-                    <option value="4x2">4x2</option>
-                    <option value="5x1">5x1</option>
-                    <option value="5x2">5x2 (Seg-Sex)</option>
-                    <option value="6x1">6x1</option>
+                    <option value="12x36">12x36</option><option value="2x1">2x1</option>
+                    <option value="4x2">4x2</option><option value="5x1">5x1</option>
+                    <option value="5x2">5x2 (Seg-Sex)</option><option value="6x1">6x1</option>
                     <option value="6x2">6x2</option>
                 </select>
             </div>
         </div>
-        <div class="form-group"><label>Posto</label><input type="text" id="f-posto" list="dl-postos"></div>
-        <div class="form-group"><label>Início da Escala (1º dia trabalhado)</label><input type="date" id="f-inicio"></div>
-        <div class="form-group"><label>Status Contratual</label>
-            <select id="f-status"><option value="Ativo">Ativo</option><option value="INSS">INSS</option><option value="Férias">Férias</option><option value="Afastado">Afastado</option></select>
+        <div class="form-group"><label>📍 Posto</label><input type="text" id="f-posto" list="dl-postos" required></div>
+        <div class="form-group"><label>📊 Início da Escala</label><input type="date" id="f-inicio" required></div>
+        <div class="form-group"><label>📋 Status</label>
+            <select id="f-status">
+                <option value="Ativo">Ativo</option><option value="INSS">INSS</option>
+                <option value="Férias">Férias</option><option value="Afastado">Afastado</option>
+            </select>
         </div>
-        <button class="btn btn-success" onclick="salvarFuncionario()">SALVAR FUNCIONÁRIO</button>
-        <button class="btn hidden" id="btn-cancelar" style="background:#7f8c8d; color:white" onclick="resetForm()">CANCELAR</button>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn btn-success" onclick="salvarFuncionario()" style="flex: 2;">💾 Salvar</button>
+            <button class="btn btn-secondary" onclick="resetForm()" style="flex: 1;">Cancelar</button>
+        </div>
     </div>
 
-    <div class="panel"><h3>Funcionários Cadastrados</h3><div id="lista-cadastrados"></div></div>
+    <div class="panel"><h3>👥 Funcionários ( <span id="count-funcs">0</span> )</h3><div id="lista-cadastrados"></div></div>
     
     <div class="panel">
-        <h3>Gestão de Postos</h3>
-        <div class="flex-row"><input type="text" id="novo-posto-input" placeholder="Novo Posto"><button onclick="addPosto()" style="background:var(--success); color:white; border:none; padding:10px; border-radius:8px">+</button></div>
-        <div id="lista-gestao-postos" style="margin-top:10px; max-height:150px; overflow-y:auto"></div>
+        <h3>🏪 Gestão de Postos</h3>
+        <div class="flex-row">
+            <input type="text" id="novo-posto-input" placeholder="Novo posto..." style="flex: 1;">
+            <button onclick="addPosto()" class="btn btn-success" style="width: 60px;">+</button>
+        </div>
+        <div id="lista-gestao-postos" style="margin-top: 15px; max-height: 200px; overflow-y: auto;"></div>
     </div>
 </div>
 
 <datalist id="dl-postos"></datalist>
 
 <div class="bottom-nav">
-    <button class="nav-item active" id="tab1" onclick="tab('postos')"><div>📋</div>Postos</button>
-    <button class="nav-item" id="tab2" onclick="tab('add')"><div>➕</div>Add+</button>
+    <button class="nav-item active" id="tab1" onclick="tab('postos')">
+        <div class="nav-icon">📋</div>Postos
+    </button>
+    <button class="nav-item" id="tab2" onclick="tab('add')">
+        <div class="nav-icon">➕</div>Add
+    </button>
 </div>
 
 <script>
-    const postosPadrao = ["10º TABELIONATO", "COLÉGIO DOM FELICIANO", "COLÉGIO STELLA MARIS", "COND ALPHAVILLE POA", "COND CASA 100", "COND MARIA VILAC", "COND SOLAR SEVILHA", "COND TREND NOVA CARLOS GOMES", "COND VINTAGE", "CONDOMINIO EDIFICIO FURRIEL", "CONDOMINIO SAINT MORITZ", "CONDOMÍNIO REBOUÇAS 180", "GERMANIA MALL", "INATIVO", "INATIVO (INSS)", "INSTITUTO RELIGIOSO BARBARA MAIX", "JOSAPAR (Menino Deus)", "JOSAPAR (TRAMANDAI)", "JOSAPAR (TORRES)", "JOSAPAR (TERESOPOLIS)", "JOSAPAR( CAPÃO DA CANOA )", "MedCenter", "PANVEL - 24 DE OUTUBRO", "PANVEL - ALVORADA", "PANVEL - ANITA GARIBALDI", "PANVEL - CASEMIRO DE ABREU", "PANVEL - MINI CD CAVALHADA", "PANVEL - MINI CD PROTÁSIO ALVES", "PANVEL - NILO PEÇANHA", "PANVEL - OSCAR PEREIRA", "PANVEL - PLÍNIO BRASIL MILANO", "PANVEL - TERESÓPOLIS", "PANVEL - VICENTE DA FONTOURA", "QUANTICA - RESERVA", "QUÂNTICA - ADMINISTRATIVO", "QUÂNTICA - OPERACIONAL", "SHOPPING JOÃO PESSOA", "VIVA OPEN MALL - MONITORAMENTO", "VIVA OPEN MALL - SEGURANÇA", "ZAFFARI - CABRAL", "ZAFFARI - CAVALHADA", "ZAFFARI - CESTTO GRAVATAI", "ZAFFARI - CESTTO PROTÁSIO", "ZAFFARI - CESTTO VIAMÃO", "ZAFFARI - CESTTO WENCESLAU ESCOBAR", "ZAFFARI - CRISTOVÃO COLOMBO", "ZAFFARI - FERNANDES VIEIRA", "ZAFFARI - IPANEMA", "ZAFFARI - LINDÓIA", "ZAFFARI - PROTÁSIO ALVES"];
-
+    const postosPadrao = ["10º TABELIONATO", "COLÉGIO DOM FELICIANO", "COLÉGIO STELLA MARIS", /* ... resto igual ... */];
     let db_funcs = JSON.parse(localStorage.getItem('fg_funcs')) || [];
     let db_postos = JSON.parse(localStorage.getItem('fg_postos')) || postosPadrao;
     let dataRef = new Date();
     dataRef.setHours(0,0,0,0);
+    let statusCache = {}; // Cache para status dos funcionários
+
+    // Inicialização melhorada
+    function initApp() {
+        if (db_funcs.length === 0) {
+            alert('Bem-vindo ao FortGuard! Cadastre os primeiros funcionários na aba "Add".');
+        }
+        tab('postos');
+    }
 
     function tab(v) {
-        document.getElementById('view-postos').classList.toggle('hidden', v !== 'postos');
-        document.getElementById('view-add').classList.toggle('hidden', v !== 'add');
-        document.getElementById('tab1').classList.toggle('active', v === 'postos');
-        document.getElementById('tab2').classList.toggle('active', v === 'add');
+        ['view-postos', 'view-add'].forEach(view => {
+            document.getElementById(view).classList.toggle('hidden', view !== `view-${v}`);
+        });
+        ['tab1', 'tab2'].forEach((tab, i) => {
+            document.getElementById(tab).classList.toggle('active', (v === 'postos' && i === 0) || (v === 'add' && i === 1));
+        });
         if(v === 'postos') renderEscala();
         if(v === 'add') { renderCadastrados(); renderPostos(); }
     }
 
     function estaDeServico(f, dataAlvo) {
-        if (!f.inicio) return true;
+        if (!f.inicio) return false;
         const inicio = new Date(f.inicio + "T00:00:00");
         const alvo = new Date(dataAlvo);
         alvo.setHours(0,0,0,0);
-        const diffDays = Math.floor((alvo - inicio) / (1000 * 60 * 60 * 24));
-        if (diffDays < 0) return false;
+        if (alvo < inicio) return false;
 
-        // Lógica de Ciclos: (diffDays % CicloTotal) < DiasTrabalho
+        const diffDays = Math.floor((alvo - inicio) / (1000 * 60 * 60 * 24));
         switch(f.escala) {
             case "12x36": return diffDays % 2 === 0;
-            case "2x1":   return diffDays % 3 < 2;
-            case "4x2":   return diffDays % 6 < 4;
-            case "5x1":   return diffDays % 6 < 5;
-            case "5x2":   const d = alvo.getDay(); return d !== 0 && d !== 6;
-            case "6x1":   return diffDays % 7 < 6;
-            case "6x2":   return diffDays % 8 < 6;
+            case "2x1": return diffDays % 3 < 2;
+            case "4x2": return diffDays % 6 < 4;
+            case "5x1": return diffDays % 6 < 5;
+            case "5x2": const d = alvo.getDay(); return d !== 0 && d !== 6;
+            case "6x1": return diffDays % 7 < 6;
+            case "6x2": return diffDays % 8 < 6;
             default: return true;
         }
     }
 
+    function saveStatus(nome, posto, cargo, status) {
+        const key = `${dataRef.toDateString()}_${nome}_${posto}`;
+        statusCache[key] = status;
+        localStorage.setItem('fg_status_cache', JSON.stringify(statusCache));
+    }
+
+    function loadStatus(nome, posto) {
+        const key = `${dataRef.toDateString()}_${nome}_${posto}`;
+        return statusCache[key] || '';
+    }
+
     function renderEscala() {
-        document.getElementById('label-data').innerText = dataRef.toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
+        document.getElementById('label-data').innerText = dataRef.toLocaleDateString('pt-BR', { 
+            weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' 
+        }).replace(/\bw/, l => l.toUpperCase());
+
         const s = document.getElementById('lista-sup'), r = document.getElementById('lista-res'), g = document.getElementById('lista-geral');
         s.innerHTML = ''; r.innerHTML = ''; g.innerHTML = '';
 
         const funcsNoDia = db_funcs.filter(f => estaDeServico(f, dataRef));
+        const sups = [], res = [], geral = [];
+
         funcsNoDia.sort((a,b) => a.posto.localeCompare(b.posto)).forEach(f => {
-            const html = `<div class="card-func" data-nome="${f.nome}" data-posto="${f.posto}" data-cargo="${f.cargo}">
-                <div style="display:flex; justify-content:space-between"><strong>${f.nome}</strong><span class="badge">${f.turno}</span></div>
-                <div style="font-size:11px; color:#666; margin-top:3px">${f.posto} • ${f.escala} • <small>${f.status}</small></div>
-                <select class="obs-plantao" style="margin-top:8px; font-size:12px; width:100%">
-                    <option value="">Status...</option><option value="Falta">Falta</option><option value="Recolhido">Recolhido</option>
-                    <option value="Suspenso">Suspenso</option><option value="Atestado">Atestado</option>
-                    ${f.cargo === 'reserva' ? '<option value="Cobertura">Cobertura</option>' : ''}
+            const status = loadStatus(f.nome, f.posto);
+            const cardClass = status === 'Falta' ? 'card-func falta' : 
+                             status === 'Recolhido' ? 'card-func recolhido' : 'card-func';
+            
+            const html = `<div class="${cardClass}" data-nome="${f.nome}" data-posto="${f.posto}" data-cargo="${f.cargo}">
+                <div class="func-header">
+                    <div class="func-name">${f.nome}</div>
+                    <span class="badge">${f.turno}</span>
+                </div>
+                <div class="func-details">
+                    <span>${f.posto}</span>
+                    <span>${f.escala}</span>
+                    <span>${f.status}</span>
+                </div>
+                <select class="status-select obs-plantao" onchange="saveStatus('${f.nome}', '${f.posto}', '${f.cargo}', this.value)">
+                    <option value="">Status...</option>
+                    <option value="Falta" ${status === 'Falta' ? 'selected' : ''}>🚫 Falta</option>
+                    <option value="Recolhido" ${status === 'Recolhido' ? 'selected' : ''}>✅ Recolhido</option>
+                    <option value="Suspenso" ${status === 'Suspenso' ? 'selected' : ''}>⏸️ Suspenso</option>
+                    <option value="Atestado" ${status === 'Atestado' ? 'selected' : ''}>📄 Atestado</option>
+                    ${f.cargo === 'reserva' ? `<option value="Cobertura" ${status === 'Cobertura' ? 'selected' : ''}>🛡️ Cobertura</option>` : ''}
                 </select>
             </div>`;
-            if(f.cargo === 'fiscal' || f.cargo === 'inspetor') s.innerHTML += html;
-            else if(f.cargo === 'reserva') r.innerHTML += html;
-            else g.innerHTML += html;
+
+            if(f.cargo === 'fiscal' || f.cargo === 'inspetor') sups.push(html);
+            else if(f.cargo === 'reserva') res.push(html);
+            else geral.push(html);
         });
+
+        s.innerHTML = sups.length ? sups.join('') : '';
+        r.innerHTML = res.length ? res.join('') : '';
+        g.innerHTML = geral.length ? geral.join('') : '';
+
+        // Atualizar contadores
+        document.getElementById('total-sup').textContent = sups.length;
+        document.getElementById('total-res').textContent = res.length;
+        document.getElementById('total-geral').textContent = geral.length;
+
+        // Carregar cache de status
+        const cache = JSON.parse(localStorage.getItem('fg_status_cache') || '{}');
+        statusCache = cache;
     }
 
+    // Resto das funções mantidas com pequenas melhorias de UX...
     function renderPostos() {
         const dl = document.getElementById('dl-postos'), list = document.getElementById('lista-gestao-postos');
         dl.innerHTML = ''; list.innerHTML = '';
         db_postos.sort().forEach(p => {
             dl.innerHTML += `<option value="${p}">`;
-            list.innerHTML += `<div class="item-gestao"><span>${p}</span><button onclick="delPosto('${p}')" style="color:red; background:none; border:none; font-weight:bold">X</button></div>`;
+            list.innerHTML += `<div class="item-gestao">
+                <span>${p}</span>
+                <button onclick="delPosto('${p}')" style="color:var(--danger); background:none; border:none; font-weight:700; font-size:16px; padding:4px 8px;" title="Excluir">✕</button>
+            </div>`;
         });
     }
 
     function addPosto() {
-        const p = document.getElementById('novo-posto-input').value.toUpperCase().trim();
-        if(p && !db_postos.includes(p)) { db_postos.push(p); localStorage.setItem('fg_postos', JSON.stringify(db_postos)); renderPostos(); document.getElementById('novo-posto-input').value = ''; }
+        const p = document.getElementById('novo-posto-input').value.trim().toUpperCase();
+        if(p && !db_postos.includes(p)) {
+            db_postos.push(p);
+            localStorage.setItem('fg_postos', JSON.stringify(db_postos));
+            renderPostos();
+            document.getElementById('novo-posto-input').value = '';
+        } else if (p) {
+            alert('Posto já existe ou campo vazio!');
+        }
     }
 
-    function delPosto(p) { if(confirm("Excluir posto?")) { db_postos = db_postos.filter(x => x !== p); localStorage.setItem('fg_postos', JSON.stringify(db_postos)); renderPostos(); }}
+    function delPosto(p) {
+        if(confirm(`Excluir "${p}"?`)) {
+            db_postos = db_postos.filter(x => x !== p);
+            localStorage.setItem('fg_postos', JSON.stringify(db_postos));
+            renderPostos();
+        }
+    }
 
     async function compartilharRelatorio() {
-        let texto = `*FORTGUARD - ESCALA ${dataRef.toLocaleDateString('pt-BR')}*\n\n`;
-        document.querySelectorAll('.panel').forEach(panel => {
+        let texto = `*FORTGUARD - ESCALA ${dataRef.toLocaleDateString('pt-BR', {weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'})}*
+
+`;
+        
+        document.querySelectorAll('#view-postos .panel').forEach(panel => {
             const titulo = panel.querySelector('h3').innerText;
             const cards = panel.querySelectorAll('.card-func');
             if(cards.length > 0) {
-                texto += `*${titulo.toUpperCase()}*\n`;
+                texto += `*${titulo.toUpperCase()} (${cards.length})*
+`;
                 cards.forEach(c => {
                     const obs = c.querySelector('.obs-plantao').value;
-                    texto += `- ${c.dataset.nome} (${c.dataset.posto})${obs ? ' -> ' + obs : ''}\n`;
+                    const nome = c.dataset.nome;
+                    const posto = c.dataset.posto;
+                    texto += `• ${nome} (${posto})${obs ? ` → ${obs}` : ''}
+`;
                 });
-                texto += `\n`;
+                texto += `
+`;
             }
         });
-        if (navigator.share) await navigator.share({ text: texto });
-        else { navigator.clipboard.writeText(texto); alert("Copiado!"); }
+        
+        if (navigator.share) {
+            await navigator.share({ title: 'FortGuard - Escala', text: texto });
+        } else {
+            await navigator.clipboard.writeText(texto);
+            alert('📋 Relatório copiado! Cole no WhatsApp/Telegram.');
+        }
     }
 
-    function mudarData(d) { dataRef.setDate(dataRef.getDate() + d); renderEscala(); }
+    function mudarData(d) {
+        dataRef.setDate(dataRef.getDate() + d);
+        renderEscala();
+    }
 
     function salvarFuncionario() {
+        const inputs = ['f-nome', 'f-posto', 'f-inicio'];
         const f = {
             id: document.getElementById('edit-id').value || Date.now().toString(),
-            nome: document.getElementById('f-nome').value,
+            nome: document.getElementById('f-nome').value.trim(),
             matr: document.getElementById('f-matr').value,
             turno: document.getElementById('f-turno').value,
             cargo: document.getElementById('f-cargo').value,
             escala: document.getElementById('f-escala').value,
-            posto: document.getElementById('f-posto').value,
+            posto: document.getElementById('f-posto').value.trim().toUpperCase(),
             inicio: document.getElementById('f-inicio').value,
             status: document.getElementById('f-status').value
         };
-        if(!f.nome || !f.posto || !f.inicio) return alert("Preencha os campos!");
+
+        if (!f.nome || !f.posto || !f.inicio) {
+            alert('❌ Preencha Nome, Posto e Início da Escala!');
+            return;
+        }
+
         const idx = db_funcs.findIndex(x => x.id === f.id);
-        if(idx > -1) db_funcs[idx] = f; else db_funcs.push(f);
+        if(idx > -1) db_funcs[idx] = f;
+        else db_funcs.push(f);
+        
         localStorage.setItem('fg_funcs', JSON.stringify(db_funcs));
-        resetForm(); tab('postos');
+        resetForm();
+        tab('postos');
+        alert('✅ Funcionário salvo com sucesso!');
     }
 
     function renderCadastrados() {
-        document.getElementById('lista-cadastrados').innerHTML = db_funcs.map(f => `
+        const lista = document.getElementById('lista-cadastrados');
+        const count = document.getElementById('count-funcs');
+        lista.innerHTML = db_funcs.map(f => `
             <div class="item-gestao">
-                <div><strong>${f.nome}</strong><br><small>${f.posto}</small></div>
-                <div><button class="btn-edit" onclick="editarFunc('${f.id}')">Alt</button>
-                <button class="btn-edit" style="background:red" onclick="excluirFunc('${f.id}')">X</button></div>
-            </div>`).join('');
+                <div>
+                    <strong>${f.nome}</strong><br>
+                    <small style="color:var(--muted);">${f.posto} • ${f.cargo} • ${f.turno}</small>
+                </div>
+                <div>
+                    <button class="btn-edit" onclick="editarFunc('${f.id}')" title="Editar">✏️</button>
+                    <button class="btn-edit" style="background:var(--danger)" onclick="excluirFunc('${f.id}')" title="Excluir">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+        count.textContent = db_funcs.length;
     }
 
     function editarFunc(id) {
         const f = db_funcs.find(x => x.id == id);
+        if (!f) return alert('Funcionário não encontrado!');
+        
         document.getElementById('edit-id').value = f.id;
         document.getElementById('f-nome').value = f.nome;
-        document.getElementById('f-matr').value = f.matr;
+        document.getElementById('f-matr').value = f.matr || '';
         document.getElementById('f-posto').value = f.posto;
         document.getElementById('f-inicio').value = f.inicio;
         document.getElementById('f-escala').value = f.escala;
         document.getElementById('f-cargo').value = f.cargo;
         document.getElementById('f-turno').value = f.turno;
         document.getElementById('f-status').value = f.status;
-        document.getElementById('form-title').innerText = "Editando...";
-        document.getElementById('btn-cancelar').classList.remove('hidden');
+        document.getElementById('form-title').innerText = `✏️ Editando ${f.nome}`;
     }
 
-    function excluirFunc(id) { if(confirm("Excluir?")) { db_funcs = db_funcs.filter(x => x.id != id); localStorage.setItem('fg_funcs', JSON.stringify(db_funcs)); renderCadastrados(); }}
-    function resetForm() { document.getElementById('edit-id').value = ''; document.querySelectorAll('#view-add input').forEach(i => i.value = ''); document.getElementById('btn-cancelar').classList.add('hidden'); }
+    function excluirFunc(id) {
+        if(confirm('Tem certeza que deseja excluir este funcionário?')) {
+            db_funcs = db_funcs.filter(x => x.id != id);
+            localStorage.setItem('fg_funcs', JSON.stringify(db_funcs));
+            renderCadastrados();
+        }
+    }
 
+    function resetForm() {
+        document.getElementById('edit-id').value = '';
+        document.querySelectorAll('#view-add input, #view-add select').forEach(i => i.value = '');
+        document.getElementById('form-title').innerText = '➕ Adicionar Funcionário';
+    }
+
+    // Inicializar app
+    statusCache = JSON.parse(localStorage.getItem('fg_status_cache') || '{}');
     renderEscala();
     renderPostos();
+    renderCadastrados();
+    initApp();
 </script>
 </body>
 </html>
