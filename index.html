@@ -25,19 +25,24 @@
             position: relative; overflow: hidden;
         }
         .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--accent), var(--success)); }
-        .header-date { font-size: 1.2rem; font-weight: 700; color: var(--primary); flex: 1; text-align: center; text-transform: capitalize; }
+        .header-date { font-size: 1.3rem; font-weight: 700; color: var(--primary); flex: 1; text-align: center; }
         .date-nav-btn { width: 44px; height: 44px; border-radius: 12px; border: none; background: var(--accent); color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .date-nav-btn:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(41,128,185,0.4); }
 
         .panel { 
             background: var(--white); border-radius: 16px; padding: 20px; margin-bottom: 20px; 
             box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.5);
+            transition: all 0.3s ease;
         }
-        .panel h3 { margin: 0 0 15px 0; color: var(--accent); font-size: 1.1rem; }
+        .panel h3 { 
+            margin: 0 0 15px 0; color: var(--accent); font-size: 1.1rem; font-weight: 600; 
+            display: flex; align-items: center; gap: 8px;
+        }
 
         .card-func { 
             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); 
             border-left: 5px solid var(--accent); padding: 16px; margin: 12px 0; border-radius: 12px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.2s; cursor: pointer;
         }
         .card-func.falta { border-left-color: var(--danger); background: #fef2f2; }
         .card-func.recolhido { border-left-color: var(--success); background: #f0fdf4; }
@@ -46,38 +51,57 @@
         .func-name { font-weight: 700; font-size: 1.05rem; color: var(--primary); }
         .badge { font-size: 12px; background: var(--accent); color: white; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
 
+        .func-details { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 12px; }
         .status-select { 
             margin-top: 12px; width: 100%; padding: 11px 12px; border: 2px solid #e2e8f0; border-radius: 10px; 
-            background: white; font-size: 14px;
+            background: white; font-size: 14px; transition: all 0.2s;
         }
 
         .form-group { margin-bottom: 16px; }
-        label { display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 6px; }
-        input, select { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; }
+        label { display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+        input, select { 
+            width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; 
+            font-size: 15px; transition: all 0.2s; background: white;
+        }
 
-        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; font-size: 15px; }
+        .btn { 
+            width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 600; 
+            cursor: pointer; font-size: 15px; transition: all 0.2s;
+        }
         .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; }
-        .btn-secondary { background: #64748b; color: white; }
-        .btn-share { background: #25d366; color: white; }
-        .btn-edit { background: var(--accent); color: white; padding: 6px 12px; border-radius: 6px; border: none; font-size: 12px; }
+        .btn-secondary { background: linear-gradient(135deg, #6b7280, #4b5563); color: white; }
+        .btn-share { background: linear-gradient(135deg, #25d366, #128c7e); color: white; }
+        .btn-edit { background: var(--accent); color: white; padding: 8px 16px; width: auto; font-size: 13px; margin-left: 8px; border-radius: 8px; border: none; cursor: pointer; }
 
         .flex-row { display: flex; gap: 12px; }
         .flex-row .form-group { flex: 1; }
         .hidden { display: none !important; }
 
-        .item-gestao { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f1f5f9; }
+        .item-gestao { 
+            display: flex; justify-content: space-between; align-items: center; padding: 14px; 
+            border-bottom: 1px solid #f1f5f9; font-size: 14px;
+        }
 
         .bottom-nav {
-            position: fixed; bottom: 0; width: 100%; background: #1a252f; 
-            display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000;
+            position: fixed; bottom: 0; width: 100%; background: rgba(26,37,47,0.96); 
+            backdrop-filter: blur(20px); display: flex; justify-content: space-around; 
+            padding: 12px 0; z-index: 1000;
         }
-        .nav-item { color: #94a3b8; background: none; border: none; font-size: 12px; cursor: pointer; text-align: center; }
-        .nav-item.active { color: #3498db; font-weight: bold; }
+        .nav-item { 
+            color: #94a3b8; background: none; border: none; font-size: 12px; cursor: pointer; 
+            text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px;
+        }
+        .nav-item.active { color: var(--accent); font-weight: 600; }
+        .nav-icon { font-size: 22px; }
 
         .stats-bar { display: flex; gap: 10px; margin-bottom: 20px; }
-        .stat-card { flex: 1; background: var(--white); padding: 12px; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .stat-number { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
-        .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+        .stat-card { flex: 1; background: var(--white); padding: 16px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .stat-number { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 12px; color: var(--muted); }
+
+        @media print {
+            .bottom-nav, .header-date, .btn, .stats-bar, .status-select, .nav-item { display: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -90,71 +114,83 @@
     </div>
 
     <div class="stats-bar">
-        <div class="stat-card"><div class="stat-number" id="total-sup">0</div><div class="stat-label">Sups</div></div>
+        <div class="stat-card"><div class="stat-number" id="total-sup">0</div><div class="stat-label">Supervisores</div></div>
         <div class="stat-card"><div class="stat-number" id="total-res">0</div><div class="stat-label">Reservas</div></div>
         <div class="stat-card"><div class="stat-number" id="total-geral">0</div><div class="stat-label">Postos</div></div>
     </div>
 
-    <div class="panel"><h3>👮 Supervisores/Fiscais</h3><div id="lista-sup"></div></div>
+    <div class="panel"><h3>👮 Supervisores</h3><div id="lista-sup"></div></div>
     <div class="panel"><h3>💾 Reservas</h3><div id="lista-res"></div></div>
     <div class="panel"><h3>🏢 Geral (Postos)</h3><div id="lista-geral"></div></div>
     
     <div style="display: flex; gap: 12px;">
-        <button class="btn btn-share" onclick="compartilharRelatorio()">📤 Copiar Relatório</button>
+        <button class="btn btn-share" onclick="compartilharRelatorio()">📤 WhatsApp</button>
         <button class="btn btn-secondary" onclick="window.print()">🖨️ PDF</button>
     </div>
 </div>
 
 <div id="view-add" class="container hidden">
     <div class="panel">
-        <h3 id="form-title">➕ Novo Funcionário</h3>
+        <h3 id="form-title">➕ Adicionar Funcionário</h3>
         <input type="hidden" id="edit-id">
-        <div class="form-group"><label>👤 Nome Completo</label><input type="text" id="f-nome" placeholder="Ex: João Silva"></div>
+        <div class="form-group"><label>👤 Nome Completo</label><input type="text" id="f-nome"></div>
         <div class="flex-row">
+            <div class="form-group"><label>🆔 Matrícula</label><input type="text" id="f-matr"></div>
             <div class="form-group"><label>🌞 Turno</label>
                 <select id="f-turno">
                     <option value="Dia">Dia</option>
                     <option value="Noite">Noite</option>
                 </select>
             </div>
+        </div>
+        <div class="flex-row">
             <div class="form-group"><label>🎖️ Cargo</label>
                 <select id="f-cargo">
-                    <option value="asp">ASP</option>
                     <option value="reserva">Reserva</option>
                     <option value="fiscal">Fiscal</option>
                     <option value="inspetor">Inspetor</option>
                     <option value="lider">Líder</option>
+                    <option value="asp">ASP</option>
                 </select>
             </div>
-        </div>
-        <div class="form-group"><label>📍 Posto</label><input type="text" id="f-posto" list="dl-postos" placeholder="Selecione ou digite..."></div>
-        <div class="flex-row">
             <div class="form-group"><label>📅 Escala</label>
                 <select id="f-escala">
                     <option value="12x36">12x36</option>
+                    <option value="2x1">2x1</option>
+                    <option value="4x2">4x2</option>
+                    <option value="5x1">5x1</option>
                     <option value="5x2">5x2 (Seg-Sex)</option>
                     <option value="6x1">6x1</option>
-                    <option value="4x2">4x2</option>
+                    <option value="6x2">6x2</option>
                 </select>
             </div>
-            <div class="form-group"><label>📊 Início</label><input type="date" id="f-inicio"></div>
+        </div>
+        <div class="form-group"><label>📍 Posto</label><input type="text" id="f-posto" list="dl-postos"></div>
+        <div class="form-group"><label>📊 Início da Escala</label><input type="date" id="f-inicio"></div>
+        <div class="form-group"><label>📋 Status</label>
+            <select id="f-status">
+                <option value="Ativo">Ativo</option>
+                <option value="INSS">INSS</option>
+                <option value="Férias">Férias</option>
+                <option value="Afastado">Afastado</option>
+            </select>
         </div>
         <div style="display: flex; gap: 12px;">
             <button class="btn btn-success" onclick="salvarFuncionario()" style="flex: 2;">💾 Salvar</button>
-            <button class="btn btn-secondary" onclick="resetForm()" style="flex: 1;">Limpar</button>
+            <button class="btn btn-secondary" onclick="resetForm()" style="flex: 1;">Cancelar</button>
         </div>
     </div>
 
     <div class="panel">
-        <h3>👥 Gestão de Cadastros</h3>
-        <input type="text" id="search-func" placeholder="🔍 Pesquisar..." oninput="filtrarFuncionarios()" style="margin-bottom: 15px;">
-        <div id="lista-cadastrados" style="max-height: 300px; overflow-y: auto;"></div>
+        <h3>👥 Funcionários Cadastrados (<span id="count-funcs">0</span>)</h3>
+        <input type="text" id="search-func" placeholder="🔍 Pesquisar por nome, posto ou matrícula..." oninput="filtrarFuncionarios()" style="margin-bottom: 15px;">
+        <div id="lista-cadastrados"></div>
     </div>
     
     <div class="panel">
-        <h3>🏪 Lista de Postos Ativos</h3>
+        <h3>🏪 Gestão de Postos</h3>
         <div class="flex-row">
-            <input type="text" id="novo-posto-input" placeholder="Adicionar novo posto...">
+            <input type="text" id="novo-posto-input" placeholder="Novo posto...">
             <button onclick="addPosto()" class="btn btn-success" style="width: 60px;">+</button>
         </div>
         <div id="lista-gestao-postos" style="margin-top: 15px; max-height: 200px; overflow-y: auto;"></div>
@@ -164,12 +200,12 @@
 <datalist id="dl-postos"></datalist>
 
 <div class="bottom-nav">
-    <button class="nav-item active" id="tab1" onclick="tab('postos')">📋<br>Escala</button>
-    <button class="nav-item" id="tab2" onclick="tab('add')">⚙️<br>Gestão</button>
+    <button class="nav-item active" id="tab1" onclick="tab('postos')"><div class="nav-icon">📋</div>Postos</button>
+    <button class="nav-item" id="tab2" onclick="tab('add')"><div class="nav-icon">➕</div>Add</button>
 </div>
 
 <script>
-    // ==================== LISTA DE POSTOS SOLICITADA ====================
+    // ==================== DADOS ATUALIZADOS ====================
     const postosPadrao = [
         "10º TABELIONATO", "COLÉGIO DOM FELICIANO", "COLÉGIO STELLA MARIS",
         "CONDOMINIO EDIFICIO FURRIEL", "CONDOMINIO SAINT MORITZ", "COND ALPHAVILLE POA",
@@ -177,14 +213,15 @@
         "COND TREND NOVA CARLOS GOMES", "CONDOMÍNIO REBOUÇAS 180", "COND VINTAGE",
         "INSTITUTO RELIGIOSO BARBARA MAIX", "JOSAPAR (CAPÃO DA CANOA)", "JOSAPAR (MENINO DEUS)",
         "JOSAPAR (TERESÓPOLIS)", "JOSAPAR (TORRES)", "JOSAPAR (TRAMANDAÍ)",
-        "MedCenter", "PANVEL – ALVORADA", "PANVEL – ANITA GARIBALDI",
+        "MEDCENTER", "PANVEL – ALVORADA", "PANVEL – ANITA GARIBALDI",
         "PANVEL – CASEMIRO DE ABREU", "PANVEL – MINI CD CAVALHADA", "PANVEL – MINI CD PROTÁSIO ALVES",
         "PANVEL – NILO PEÇANHA", "PANVEL – OSCAR PEREIRA", "PANVEL – PLÍNIO BRASIL MILANO",
         "QUANTICA – RESERVA", "QUÂNTICA – ADMINISTRATIVO", "QUÂNTICA – OPERACIONAL",
         "SHOPPING JOÃO PESSOA", "VIVA OPEN MALL – MONITORAMENTO", "VIVA OPEN MALL – SEGURANÇA",
         "ZAFFARI – CABRAL", "ZAFFARI – CAVALHADA", "ZAFFARI – CESTTO GRAVATAI",
         "ZAFFARI – CESTTO PROTÁSIO", "ZAFFARI – CESTTO VIAMÃO", "ZAFFARI – CESTTO WENCESLAU ESCOBAR",
-        "ZAFFARI – FERNANDES VIEIRA", "ZAFFARI – IPANEMA", "ZAFFARI – LINDÓIA", "ZAFFARI – CRISTOVÃO COLOMBO"
+        "ZAFFARI – FERNANDES VIEIRA", "ZAFFARI – IPANEMA", "ZAFFARI – LINDÓIA",
+        "ZAFFARI – CRISTOVÃO COLOMBO"
     ];
 
     let db_funcs = JSON.parse(localStorage.getItem('fg_funcs')) || [];
@@ -193,7 +230,7 @@
     dataRef.setHours(0,0,0,0);
     let statusCache = JSON.parse(localStorage.getItem('fg_status_cache') || '{}');
 
-    function initApp() { tab('postos'); renderPostos(); }
+    function initApp() { tab('postos'); }
 
     function tab(v) {
         document.getElementById('view-postos').classList.toggle('hidden', v !== 'postos');
@@ -213,128 +250,149 @@
         const diffDays = Math.floor((alvo - inicio) / 86400000);
         switch(f.escala) {
             case "12x36": return diffDays % 2 === 0;
+            case "2x1": return diffDays % 3 < 2;
+            case "4x2": return diffDays % 6 < 4;
+            case "5x1": return diffDays % 6 < 5;
             case "5x2": return [1,2,3,4,5].includes(alvo.getDay());
             case "6x1": return diffDays % 7 < 6;
-            case "4x2": return diffDays % 6 < 4;
+            case "6x2": return diffDays % 8 < 6;
             default: return true;
         }
     }
 
-    function renderEscala() {
-        const dStr = dataRef.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
-        document.getElementById('label-data').innerText = dStr;
-        
-        const funcsNoDia = db_funcs.filter(f => estaDeServico(f, dataRef)).sort((a,b) => a.nome.localeCompare(b.nome));
-        
-        let htmlSup = '', htmlRes = '', htmlGeral = '';
-        let cSup = 0, cRes = 0, cGer = 0;
-
-        funcsNoDia.forEach(f => {
-            const key = `${dataRef.toDateString()}_${f.nome}_${f.posto}`;
-            const s = statusCache[key] || '';
-            const card = `
-                <div class="card-func ${s.toLowerCase()}">
-                    <div class="func-header"><div class="func-name">${f.nome}</div><span class="badge">${f.turno}</span></div>
-                    <div style="font-size:12px; color:var(--muted)">${f.posto} • ${f.cargo.toUpperCase()}</div>
-                    <select class="status-select" onchange="updateStatus('${key}', this.value)">
-                        <option value="">Aguardando...</option>
-                        <option value="Recolhido" ${s==='Recolhido'?'selected':''}>✅ OK (No Posto)</option>
-                        <option value="Falta" ${s==='Falta'?'selected':''}>🚫 Falta / Ausente</option>
-                    </select>
-                </div>`;
-
-            if (['fiscal','inspetor'].includes(f.cargo)) { htmlSup += card; cSup++; }
-            else if (f.cargo === 'reserva') { htmlRes += card; cRes++; }
-            else { htmlGeral += card; cGer++; }
-        });
-
-        document.getElementById('lista-sup').innerHTML = htmlSup || '<p style="font-size:12px; color:#999; text-align:center">Nenhum supervisor hoje</p>';
-        document.getElementById('lista-res').innerHTML = htmlRes || '<p style="font-size:12px; color:#999; text-align:center">Nenhum reserva hoje</p>';
-        document.getElementById('lista-geral').innerHTML = htmlGeral || '<p style="font-size:12px; color:#999; text-align:center">Nenhum posto escalado</p>';
-        
-        document.getElementById('total-sup').innerText = cSup;
-        document.getElementById('total-res').innerText = cRes;
-        document.getElementById('total-geral').innerText = cGer;
+    function filtrarFuncionarios() {
+        const termo = document.getElementById('search-func').value.toLowerCase().trim();
+        const filtrados = db_funcs.filter(f => 
+            f.nome.toLowerCase().includes(termo) || 
+            f.posto.toLowerCase().includes(termo) || 
+            (f.matr && f.matr.toLowerCase().includes(termo))
+        );
+        renderCadastrados(filtrados);
     }
 
-    function updateStatus(key, val) {
-        statusCache[key] = val;
-        localStorage.setItem('fg_status_cache', JSON.stringify(statusCache));
-        renderEscala();
+    function renderCadastrados(listaFiltrada = null) {
+        const lista = document.getElementById('lista-cadastrados');
+        let dados = listaFiltrada !== null ? listaFiltrada : db_funcs;
+        dados.sort((a, b) => a.nome.localeCompare(b.nome));
+
+        if (dados.length === 0) {
+            lista.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Nenhum registro encontrado.</div>';
+        } else {
+            lista.innerHTML = dados.map(f => `
+                <div class="item-gestao">
+                    <div>
+                        <strong>${f.nome}</strong><br>
+                        <small style="color:var(--muted);">${f.posto} • ${f.cargo} • ${f.turno}</small>
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn-edit" onclick="editarFunc('${f.id}')">✏️</button>
+                        <button class="btn-edit" style="background:var(--danger)" onclick="excluirFunc('${f.id}')">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        document.getElementById('count-funcs').textContent = dados.length;
+    }
+
+    function renderEscala() {
+        document.getElementById('label-data').innerHTML = dataRef.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+        const funcsNoDia = db_funcs.filter(f => estaDeServico(f, dataRef));
+        funcsNoDia.sort((a, b) => a.nome.localeCompare(b.nome));
+        
+        const sups = [], res = [], geral = [];
+        funcsNoDia.forEach(f => {
+            const statusKey = `${dataRef.toDateString()}_${f.nome}_${f.posto}`;
+            const s = statusCache[statusKey] || '';
+            const html = `
+                <div class="card-func ${s.toLowerCase()}">
+                    <div class="func-header"><div class="func-name">${f.nome}</div><span class="badge">${f.turno}</span></div>
+                    <div class="func-details"><span>${f.posto}</span><span>${f.escala}</span></div>
+                    <select class="status-select" onchange="statusCache['${statusKey}']=this.value; localStorage.setItem('fg_status_cache', JSON.stringify(statusCache)); renderEscala();">
+                        <option value="">Status...</option>
+                        <option value="Falta" ${s==='Falta'?'selected':''}>🚫 Falta</option>
+                        <option value="Recolhido" ${s==='Recolhido'?'selected':''}>✅ OK</option>
+                    </select>
+                </div>`;
+            if (['fiscal','inspetor'].includes(f.cargo)) sups.push(html);
+            else if (f.cargo === 'reserva') res.push(html);
+            else geral.push(html);
+        });
+
+        document.getElementById('lista-sup').innerHTML = sups.join('') || '<p style="text-align:center;color:#94a3b8">Nenhum Supervisor</p>';
+        document.getElementById('lista-res').innerHTML = res.join('') || '<p style="text-align:center;color:#94a3b8">Nenhum Reserva</p>';
+        document.getElementById('lista-geral').innerHTML = geral.join('') || '<p style="text-align:center;color:#94a3b8">Nenhum Posto</p>';
+        document.getElementById('total-sup').innerText = sups.length;
+        document.getElementById('total-res').innerText = res.length;
+        document.getElementById('total-geral').innerText = geral.length;
     }
 
     function salvarFuncionario() {
         const f = {
             id: document.getElementById('edit-id').value || Date.now().toString(),
             nome: document.getElementById('f-nome').value.trim(),
+            matr: document.getElementById('f-matr').value.trim(),
             turno: document.getElementById('f-turno').value,
             cargo: document.getElementById('f-cargo').value,
             escala: document.getElementById('f-escala').value,
             posto: document.getElementById('f-posto').value.trim().toUpperCase(),
-            inicio: document.getElementById('f-inicio').value
+            inicio: document.getElementById('f-inicio').value,
+            status: document.getElementById('f-status').value
         };
-        if (!f.nome || !f.posto || !f.inicio) return alert('Por favor, preencha Nome, Posto e Data de Início.');
-        
-        const idx = db_funcs.findIndex(x => x.id === f.id);
+        if (!f.nome || !f.posto || !f.inicio) return alert('Preencha os campos obrigatórios!');
+        const idx = db_funcs.findIndex(x => String(x.id) === String(f.id));
         if (idx > -1) db_funcs[idx] = f; else db_funcs.push(f);
-        
         localStorage.setItem('fg_funcs', JSON.stringify(db_funcs));
         resetForm();
         renderCadastrados();
-        alert('Dados salvos com sucesso!');
-    }
-
-    function renderCadastrados(lista = null) {
-        const dados = (lista || db_funcs).sort((a,b) => a.nome.localeCompare(b.nome));
-        document.getElementById('lista-cadastrados').innerHTML = dados.map(f => `
-            <div class="item-gestao">
-                <div><strong>${f.nome}</strong><br><small>${f.posto} | ${f.turno}</small></div>
-                <div>
-                    <button class="btn-edit" onclick="editarFunc('${f.id}')">✏️</button>
-                    <button class="btn-edit" style="background:#e74c3c" onclick="excluirFunc('${f.id}')">🗑️</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function filtrarFuncionarios() {
-        const t = document.getElementById('search-func').value.toLowerCase();
-        const filtrados = db_funcs.filter(f => f.nome.toLowerCase().includes(t) || f.posto.toLowerCase().includes(t));
-        renderCadastrados(filtrados);
+        alert('Salvo!');
     }
 
     function editarFunc(id) {
-        const f = db_funcs.find(x => x.id === id);
+        const f = db_funcs.find(x => String(x.id) === String(id));
         if (!f) return;
         document.getElementById('edit-id').value = f.id;
         document.getElementById('f-nome').value = f.nome;
+        document.getElementById('f-matr').value = f.matr || '';
         document.getElementById('f-posto').value = f.posto;
         document.getElementById('f-inicio').value = f.inicio;
         document.getElementById('f-escala').value = f.escala;
         document.getElementById('f-cargo').value = f.cargo;
         document.getElementById('f-turno').value = f.turno;
-        document.getElementById('form-title').innerText = '✏️ Editando: ' + f.nome;
+        document.getElementById('f-status').value = f.status;
+        document.getElementById('form-title').innerText = '✏️ Editar Funcionário';
         window.scrollTo(0,0);
     }
 
     function excluirFunc(id) {
-        if (confirm('Excluir permanentemente este registro?')) {
-            db_funcs = db_funcs.filter(x => x.id !== id);
+        if (confirm('Deseja realmente excluir este funcionário?')) {
+            db_funcs = db_funcs.filter(x => String(x.id) !== String(id));
             localStorage.setItem('fg_funcs', JSON.stringify(db_funcs));
             renderCadastrados();
+            renderEscala();
         }
+    }
+
+    function resetForm() {
+        document.getElementById('edit-id').value = '';
+        document.getElementById('form-title').innerText = '➕ Adicionar Funcionário';
+        document.getElementById('f-nome').value = '';
+        document.getElementById('f-matr').value = '';
+        document.getElementById('f-posto').value = '';
+        document.getElementById('f-inicio').value = '';
+        document.getElementById('f-turno').selectedIndex = 0;
+        document.getElementById('f-cargo').selectedIndex = 0;
+        document.getElementById('f-escala').selectedIndex = 0;
+        document.getElementById('f-status').selectedIndex = 0;
     }
 
     function renderPostos() {
         const dl = document.getElementById('dl-postos');
         const list = document.getElementById('lista-gestao-postos');
-        db_postos.sort();
-        dl.innerHTML = db_postos.map(p => `<option value="${p}">`).join('');
-        list.innerHTML = db_postos.map(p => `
-            <div class="item-gestao">
-                <span>${p}</span>
-                <button onclick="delPosto('${p}')" style="border:none; background:none; color:red; cursor:pointer">✕</button>
-            </div>`).join('');
+        dl.innerHTML = ''; list.innerHTML = '';
+        db_postos.sort().forEach(p => {
+            dl.innerHTML += `<option value="${p}">`;
+            list.innerHTML += `<div class="item-gestao"><span>${p}</span><button onclick="delPosto('${p}')" style="color:red; background:none; border:none; cursor:pointer;">✕</button></div>`;
+        });
     }
 
     function addPosto() {
@@ -347,32 +405,19 @@
         document.getElementById('novo-posto-input').value = '';
     }
 
-    function delPosto(p) {
-        if (confirm('Remover posto da lista?')) {
-            db_postos = db_postos.filter(x => x !== p);
-            localStorage.setItem('fg_postos', JSON.stringify(db_postos));
-            renderPostos();
-        }
-    }
+    function delPosto(p) { if (confirm('Remover posto?')) { db_postos = db_postos.filter(x => x !== p); localStorage.setItem('fg_postos', JSON.stringify(db_postos)); renderPostos(); } }
 
-    function mudarData(n) { dataRef.setDate(dataRef.getDate() + n); renderEscala(); }
+    function mudarData(d) { dataRef.setDate(dataRef.getDate() + d); renderEscala(); }
 
-    function resetForm() {
-        document.getElementById('edit-id').value = '';
-        document.getElementById('f-nome').value = '';
-        document.getElementById('f-posto').value = '';
-        document.getElementById('f-inicio').value = '';
-        document.getElementById('form-title').innerText = '➕ Novo Funcionário';
-    }
-
-    function compartilharRelatorio() {
-        let txt = `*FORTGUARD - RELATÓRIO ${dataRef.toLocaleDateString()}*\n\n`;
-        const ativos = db_funcs.filter(f => estaDeServico(f, dataRef)).sort((a,b) => a.nome.localeCompare(b.nome));
+    async function compartilharRelatorio() {
+        let txt = `*FORTGUARD - ESCALA ${dataRef.toLocaleDateString().toUpperCase()}*\n\n`;
+        const ativos = db_funcs.filter(f => estaDeServico(f, dataRef)).sort((a, b) => a.nome.localeCompare(b.nome));
         ativos.forEach(f => {
-            const s = statusCache[`${dataRef.toDateString()}_${f.nome}_${f.posto}`] || 'Pendente';
-            txt += `• *${f.nome}* | ${f.posto}\n  Status: ${s}\n\n`;
+            const s = statusCache[`${dataRef.toDateString()}_${f.nome}_${f.posto}`] || '';
+            txt += `• ${f.nome} (${f.posto})${s ? ' -> ' + s : ''}\n`;
         });
-        navigator.clipboard.writeText(txt).then(() => alert('Relatório copiado! Cole no WhatsApp.'));
+        navigator.clipboard.writeText(txt);
+        alert('Relatório copiado para a área de transferência!');
     }
 
     initApp();
