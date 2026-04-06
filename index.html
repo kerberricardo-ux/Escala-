@@ -34,20 +34,16 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.5);
             transition: all 0.3s ease;
         }
-        .panel:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
         .panel h3 { 
             margin: 0 0 15px 0; color: var(--accent); font-size: 1.1rem; font-weight: 600; 
             display: flex; align-items: center; gap: 8px;
         }
-        .panel.vazio::after { content: 'Nenhum funcionário encontrado'; color: var(--muted); font-style: italic; text-align: center; display: block; padding: 20px; }
 
         .card-func { 
             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); 
             border-left: 5px solid var(--accent); padding: 16px; margin: 12px 0; border-radius: 12px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.2s; cursor: pointer;
-            position: relative;
         }
-        .card-func:hover { transform: translateX(6px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
         .card-func.falta { border-left-color: var(--danger); background: #fef2f2; }
         .card-func.recolhido { border-left-color: var(--success); background: #f0fdf4; }
         
@@ -60,7 +56,6 @@
             margin-top: 12px; width: 100%; padding: 11px 12px; border: 2px solid #e2e8f0; border-radius: 10px; 
             background: white; font-size: 14px; transition: all 0.2s;
         }
-        .status-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(41,128,185,0.15); }
 
         .form-group { margin-bottom: 16px; }
         label { display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
@@ -68,17 +63,14 @@
             width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; 
             font-size: 15px; transition: all 0.2s; background: white;
         }
-        input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(41,128,185,0.15); }
 
         .btn { 
             width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 600; 
-            cursor: pointer; font-size: 15px; transition: all 0.2s; position: relative; overflow: hidden;
+            cursor: pointer; font-size: 15px; transition: all 0.2s;
         }
-        .btn:active { transform: scale(0.97); }
-        .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
-        .btn-danger { background: linear-gradient(135deg, var(--danger), #dc2626); color: white; box-shadow: 0 4px 15px rgba(231,76,60,0.3); }
+        .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; }
         .btn-secondary { background: linear-gradient(135deg, #6b7280, #4b5563); color: white; }
-        .btn-share { background: linear-gradient(135deg, #25d366, #128c7e); color: white; box-shadow: 0 4px 15px rgba(37,211,102,0.4); }
+        .btn-share { background: linear-gradient(135deg, #25d366, #128c7e); color: white; }
         .btn-edit { background: var(--accent); color: white; padding: 8px 16px; width: auto; font-size: 13px; margin-left: 8px; border-radius: 8px; border: none; cursor: pointer; }
 
         .flex-row { display: flex; gap: 12px; }
@@ -87,34 +79,28 @@
 
         .item-gestao { 
             display: flex; justify-content: space-between; align-items: center; padding: 14px; 
-            border-bottom: 1px solid #f1f5f9; font-size: 14px; transition: background 0.2s;
+            border-bottom: 1px solid #f1f5f9; font-size: 14px;
         }
-        .item-gestao:hover { background: #f8fafc; border-radius: 8px; }
 
         .bottom-nav {
             position: fixed; bottom: 0; width: 100%; background: rgba(26,37,47,0.96); 
             backdrop-filter: blur(20px); display: flex; justify-content: space-around; 
-            padding: 12px 0; z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            padding: 12px 0; z-index: 1000;
         }
         .nav-item { 
             color: #94a3b8; background: none; border: none; font-size: 12px; cursor: pointer; 
-            text-align: center; padding: 8px; border-radius: 12px; transition: all 0.2s;
-            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px;
         }
-        .nav-item.active { color: var(--accent); background: rgba(41,128,185,0.2); font-weight: 600; transform: scale(1.05); }
+        .nav-item.active { color: var(--accent); font-weight: 600; }
         .nav-icon { font-size: 22px; }
 
         .stats-bar { display: flex; gap: 10px; margin-bottom: 20px; }
-        .stat-card { 
-            flex: 1; background: var(--white); padding: 16px; border-radius: 12px; 
-            text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
+        .stat-card { flex: 1; background: var(--white); padding: 16px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
         .stat-number { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
         .stat-label { font-size: 12px; color: var(--muted); }
 
         @media print {
             .bottom-nav, .header-date, .btn, .stats-bar, .status-select, .nav-item { display: none !important; }
-            .container { max-width: none; padding: 20px; }
         }
     </style>
 </head>
@@ -227,22 +213,17 @@
     dataRef.setHours(0,0,0,0);
     let statusCache = JSON.parse(localStorage.getItem('fg_status_cache') || '{}');
 
-    // ==================== INICIALIZAÇÃO ====================
-    function initApp() {
-        tab('postos');
-    }
+    function initApp() { tab('postos'); }
 
     function tab(v) {
         document.getElementById('view-postos').classList.toggle('hidden', v !== 'postos');
         document.getElementById('view-add').classList.toggle('hidden', v !== 'add');
         document.getElementById('tab1').classList.toggle('active', v === 'postos');
         document.getElementById('tab2').classList.toggle('active', v === 'add');
-
         if (v === 'postos') renderEscala();
         if (v === 'add') { renderCadastrados(); renderPostos(); }
     }
 
-    // ==================== LÓGICA DE ESCALA ====================
     function estaDeServico(f, dataAlvo) {
         if (!f.inicio) return false;
         const inicio = new Date(f.inicio + "T00:00:00");
@@ -250,7 +231,6 @@
         alvo.setHours(0,0,0,0);
         if (alvo < inicio) return false;
         const diffDays = Math.floor((alvo - inicio) / 86400000);
-
         switch(f.escala) {
             case "12x36": return diffDays % 2 === 0;
             case "2x1": return diffDays % 3 < 2;
@@ -263,7 +243,7 @@
         }
     }
 
-    // ==================== PESQUISA E FILTRO (CORRIGIDO) ====================
+    // ==================== PESQUISA E FILTRO (A-Z) ====================
     function filtrarFuncionarios() {
         const termo = document.getElementById('search-func').value.toLowerCase().trim();
         const filtrados = db_funcs.filter(f => 
@@ -276,7 +256,10 @@
 
     function renderCadastrados(listaFiltrada = null) {
         const lista = document.getElementById('lista-cadastrados');
-        const dados = listaFiltrada !== null ? listaFiltrada : db_funcs;
+        let dados = listaFiltrada !== null ? listaFiltrada : db_funcs;
+
+        // ORDENAÇÃO A-Z
+        dados.sort((a, b) => a.nome.localeCompare(b.nome));
 
         if (dados.length === 0) {
             lista.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Nenhum registro encontrado.</div>';
@@ -297,6 +280,41 @@
         document.getElementById('count-funcs').textContent = dados.length;
     }
 
+    // ==================== RENDERS ESCALA (A-Z) ====================
+    function renderEscala() {
+        document.getElementById('label-data').innerHTML = dataRef.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+        
+        // Pega quem trabalha no dia e ordena A-Z
+        const funcsNoDia = db_funcs.filter(f => estaDeServico(f, dataRef));
+        funcsNoDia.sort((a, b) => a.nome.localeCompare(b.nome));
+        
+        const sups = [], res = [], geral = [];
+        funcsNoDia.forEach(f => {
+            const statusKey = `${dataRef.toDateString()}_${f.nome}_${f.posto}`;
+            const s = statusCache[statusKey] || '';
+            const html = `
+                <div class="card-func ${s.toLowerCase()}">
+                    <div class="func-header"><div class="func-name">${f.nome}</div><span class="badge">${f.turno}</span></div>
+                    <div class="func-details"><span>${f.posto}</span><span>${f.escala}</span></div>
+                    <select class="status-select" onchange="statusCache['${statusKey}']=this.value; localStorage.setItem('fg_status_cache', JSON.stringify(statusCache)); renderEscala();">
+                        <option value="">Status...</option>
+                        <option value="Falta" ${s==='Falta'?'selected':''}>🚫 Falta</option>
+                        <option value="Recolhido" ${s==='Recolhido'?'selected':''}>✅ OK</option>
+                    </select>
+                </div>`;
+            if (['fiscal','inspetor'].includes(f.cargo)) sups.push(html);
+            else if (f.cargo === 'reserva') res.push(html);
+            else geral.push(html);
+        });
+
+        document.getElementById('lista-sup').innerHTML = sups.join('') || '<p style="text-align:center;color:#94a3b8">Nenhum Supervisor</p>';
+        document.getElementById('lista-res').innerHTML = res.join('') || '<p style="text-align:center;color:#94a3b8">Nenhum Reserva</p>';
+        document.getElementById('lista-geral').innerHTML = geral.join('') || '<p style="text-align:center;color:#94a3b8">Nenhum Posto</p>';
+        document.getElementById('total-sup').innerText = sups.length;
+        document.getElementById('total-res').innerText = res.length;
+        document.getElementById('total-geral').innerText = geral.length;
+    }
+
     // ==================== GESTÃO DE DADOS ====================
     function salvarFuncionario() {
         const f = {
@@ -310,12 +328,9 @@
             inicio: document.getElementById('f-inicio').value,
             status: document.getElementById('f-status').value
         };
-
         if (!f.nome || !f.posto || !f.inicio) return alert('Preencha os campos obrigatórios!');
-
         const idx = db_funcs.findIndex(x => x.id === f.id);
         if (idx > -1) db_funcs[idx] = f; else db_funcs.push(f);
-
         localStorage.setItem('fg_funcs', JSON.stringify(db_funcs));
         resetForm();
         renderCadastrados();
@@ -352,38 +367,6 @@
         document.querySelectorAll('#view-add input').forEach(i => i.value = '');
     }
 
-    // ==================== RENDERS EXTRAS ====================
-    function renderEscala() {
-        document.getElementById('label-data').innerHTML = dataRef.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
-        const funcsNoDia = db_funcs.filter(f => estaDeServico(f, dataRef));
-        
-        const sups = [], res = [], geral = [];
-        funcsNoDia.forEach(f => {
-            const statusKey = `${dataRef.toDateString()}_${f.nome}_${f.posto}`;
-            const s = statusCache[statusKey] || '';
-            const html = `
-                <div class="card-func ${s.toLowerCase()}" onclick="alert('${f.nome}')">
-                    <div class="func-header"><div class="func-name">${f.nome}</div><span class="badge">${f.turno}</span></div>
-                    <div class="func-details"><span>${f.posto}</span><span>${f.escala}</span></div>
-                    <select class="status-select obs-plantao" onchange="statusCache['${statusKey}']=this.value; localStorage.setItem('fg_status_cache', JSON.stringify(statusCache)); renderEscala();">
-                        <option value="">Status...</option>
-                        <option value="Falta" ${s==='Falta'?'selected':''}>🚫 Falta</option>
-                        <option value="Recolhido" ${s==='Recolhido'?'selected':''}>✅ OK</option>
-                    </select>
-                </div>`;
-            if (['fiscal','inspetor'].includes(f.cargo)) sups.push(html);
-            else if (f.cargo === 'reserva') res.push(html);
-            else geral.push(html);
-        });
-
-        document.getElementById('lista-sup').innerHTML = sups.join('') || '<p>Vazio</p>';
-        document.getElementById('lista-res').innerHTML = res.join('') || '<p>Vazio</p>';
-        document.getElementById('lista-geral').innerHTML = geral.join('') || '<p>Vazio</p>';
-        document.getElementById('total-sup').innerText = sups.length;
-        document.getElementById('total-res').innerText = res.length;
-        document.getElementById('total-geral').innerText = geral.length;
-    }
-
     function renderPostos() {
         const dl = document.getElementById('dl-postos');
         const list = document.getElementById('lista-gestao-postos');
@@ -404,12 +387,14 @@
     function mudarData(d) { dataRef.setDate(dataRef.getDate() + d); renderEscala(); }
 
     async function compartilharRelatorio() {
-        let txt = `*FORTGUARD - ${dataRef.toLocaleDateString()}*\n\n`;
-        db_funcs.filter(f => estaDeServico(f, dataRef)).forEach(f => {
-            txt += `• ${f.nome} (${f.posto})\n`;
+        let txt = `*FORTGUARD - ESCALA ${dataRef.toLocaleDateString().toUpperCase()}*\n\n`;
+        const ativos = db_funcs.filter(f => estaDeServico(f, dataRef)).sort((a, b) => a.nome.localeCompare(b.nome));
+        ativos.forEach(f => {
+            const s = statusCache[`${dataRef.toDateString()}_${f.nome}_${f.posto}`] || '';
+            txt += `• ${f.nome} (${f.posto})${s ? ' -> ' + s : ''}\n`;
         });
         navigator.clipboard.writeText(txt);
-        alert('Copiado!');
+        alert('Relatório A-Z copiado!');
     }
 
     initApp();
