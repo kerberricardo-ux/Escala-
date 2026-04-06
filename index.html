@@ -258,7 +258,6 @@
         const lista = document.getElementById('lista-cadastrados');
         let dados = listaFiltrada !== null ? listaFiltrada : db_funcs;
 
-        // ORDENAÇÃO A-Z
         dados.sort((a, b) => a.nome.localeCompare(b.nome));
 
         if (dados.length === 0) {
@@ -284,7 +283,6 @@
     function renderEscala() {
         document.getElementById('label-data').innerHTML = dataRef.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
         
-        // Pega quem trabalha no dia e ordena A-Z
         const funcsNoDia = db_funcs.filter(f => estaDeServico(f, dataRef));
         funcsNoDia.sort((a, b) => a.nome.localeCompare(b.nome));
         
@@ -329,7 +327,7 @@
             status: document.getElementById('f-status').value
         };
         if (!f.nome || !f.posto || !f.inicio) return alert('Preencha os campos obrigatórios!');
-        const idx = db_funcs.findIndex(x => x.id === f.id);
+        const idx = db_funcs.findIndex(x => String(x.id) === String(f.id));
         if (idx > -1) db_funcs[idx] = f; else db_funcs.push(f);
         localStorage.setItem('fg_funcs', JSON.stringify(db_funcs));
         resetForm();
@@ -338,7 +336,7 @@
     }
 
     function editarFunc(id) {
-        const f = db_funcs.find(x => x.id === id);
+        const f = db_funcs.find(x => String(x.id) === String(id));
         if (!f) return;
         document.getElementById('edit-id').value = f.id;
         document.getElementById('f-nome').value = f.nome;
@@ -349,22 +347,32 @@
         document.getElementById('f-cargo').value = f.cargo;
         document.getElementById('f-turno').value = f.turno;
         document.getElementById('f-status').value = f.status;
-        document.getElementById('form-title').innerText = '✏️ Editar';
+        document.getElementById('form-title').innerText = '✏️ Editar Funcionário';
         window.scrollTo(0,0);
     }
 
     function excluirFunc(id) {
-        if (confirm('Excluir?')) {
-            db_funcs = db_funcs.filter(x => x.id !== id);
+        if (confirm('Deseja realmente excluir este funcionário?')) {
+            // Comparação forçada como string para evitar erros de tipagem
+            db_funcs = db_funcs.filter(x => String(x.id) !== String(id));
             localStorage.setItem('fg_funcs', JSON.stringify(db_funcs));
             renderCadastrados();
+            if(typeof renderEscala === "function") renderEscala();
         }
     }
 
     function resetForm() {
         document.getElementById('edit-id').value = '';
-        document.getElementById('form-title').innerText = '➕ Adicionar';
-        document.querySelectorAll('#view-add input').forEach(i => i.value = '');
+        document.getElementById('form-title').innerText = '➕ Adicionar Funcionário';
+        document.getElementById('f-nome').value = '';
+        document.getElementById('f-matr').value = '';
+        document.getElementById('f-posto').value = '';
+        document.getElementById('f-inicio').value = '';
+        // Reseta selects para o primeiro valor
+        document.getElementById('f-turno').selectedIndex = 0;
+        document.getElementById('f-cargo').selectedIndex = 0;
+        document.getElementById('f-escala').selectedIndex = 0;
+        document.getElementById('f-status').selectedIndex = 0;
     }
 
     function renderPostos() {
@@ -380,9 +388,10 @@
     function addPosto() {
         const p = document.getElementById('novo-posto-input').value.trim().toUpperCase();
         if (p && !db_postos.includes(p)) { db_postos.push(p); localStorage.setItem('fg_postos', JSON.stringify(db_postos)); renderPostos(); }
+        document.getElementById('novo-posto-input').value = '';
     }
 
-    function delPosto(p) { if (confirm('Remover?')) { db_postos = db_postos.filter(x => x !== p); localStorage.setItem('fg_postos', JSON.stringify(db_postos)); renderPostos(); } }
+    function delPosto(p) { if (confirm('Remover posto?')) { db_postos = db_postos.filter(x => x !== p); localStorage.setItem('fg_postos', JSON.stringify(db_postos)); renderPostos(); } }
 
     function mudarData(d) { dataRef.setDate(dataRef.getDate() + d); renderEscala(); }
 
@@ -394,7 +403,7 @@
             txt += `• ${f.nome} (${f.posto})${s ? ' -> ' + s : ''}\n`;
         });
         navigator.clipboard.writeText(txt);
-        alert('Relatório A-Z copiado!');
+        alert('Relatório copiado para a área de transferência!');
     }
 
     initApp();
