@@ -74,14 +74,12 @@
             width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 600; 
             cursor: pointer; font-size: 15px; transition: all 0.2s; position: relative; overflow: hidden;
         }
-        .btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transition: left 0.5s; }
-        .btn:hover::before { left: 100%; }
         .btn:active { transform: scale(0.97); }
         .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
         .btn-danger { background: linear-gradient(135deg, var(--danger), #dc2626); color: white; box-shadow: 0 4px 15px rgba(231,76,60,0.3); }
         .btn-secondary { background: linear-gradient(135deg, #6b7280, #4b5563); color: white; }
         .btn-share { background: linear-gradient(135deg, #25d366, #128c7e); color: white; box-shadow: 0 4px 15px rgba(37,211,102,0.4); }
-        .btn-edit { background: var(--accent); color: white; padding: 8px 16px; width: auto; font-size: 13px; margin-left: 8px; }
+        .btn-edit { background: var(--accent); color: white; padding: 8px 16px; width: auto; font-size: 13px; margin-left: 8px; border-radius: 8px; border: none; cursor: pointer; }
 
         .flex-row { display: flex; gap: 12px; }
         .flex-row .form-group { flex: 1; }
@@ -118,35 +116,21 @@
             .bottom-nav, .header-date, .btn, .stats-bar, .status-select, .nav-item { display: none !important; }
             .container { max-width: none; padding: 20px; }
         }
-
-        @media (max-width: 480px) {
-            .container { padding: 15px 10px; }
-            .header { padding: 16px; }
-        }
     </style>
 </head>
 <body>
 
 <div id="view-postos" class="container">
     <div class="header">
-        <button class="date-nav-btn" onclick="mudarData(-1)" title="Dia anterior">←</button>
+        <button class="date-nav-btn" onclick="mudarData(-1)">←</button>
         <div class="header-date" id="label-data"></div>
-        <button class="date-nav-btn" onclick="mudarData(1)" title="Próximo dia">→</button>
+        <button class="date-nav-btn" onclick="mudarData(1)">→</button>
     </div>
 
     <div class="stats-bar">
-        <div class="stat-card">
-            <div class="stat-number" id="total-sup">0</div>
-            <div class="stat-label">Supervisores</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="total-res">0</div>
-            <div class="stat-label">Reservas</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="total-geral">0</div>
-            <div class="stat-label">Postos</div>
-        </div>
+        <div class="stat-card"><div class="stat-number" id="total-sup">0</div><div class="stat-label">Supervisores</div></div>
+        <div class="stat-card"><div class="stat-number" id="total-res">0</div><div class="stat-label">Reservas</div></div>
+        <div class="stat-card"><div class="stat-number" id="total-geral">0</div><div class="stat-label">Postos</div></div>
     </div>
 
     <div class="panel"><h3>👮 Supervisores</h3><div id="lista-sup"></div></div>
@@ -154,8 +138,8 @@
     <div class="panel"><h3>🏢 Geral (Postos)</h3><div id="lista-geral"></div></div>
     
     <div style="display: flex; gap: 12px;">
-        <button class="btn btn-share" onclick="compartilharRelatorio()">📤 Compartilhar no WhatsApp</button>
-        <button class="btn btn-secondary" onclick="window.print()">🖨️ Gerar PDF</button>
+        <button class="btn btn-share" onclick="compartilharRelatorio()">📤 WhatsApp</button>
+        <button class="btn btn-secondary" onclick="window.print()">🖨️ PDF</button>
     </div>
 </div>
 
@@ -163,7 +147,7 @@
     <div class="panel">
         <h3 id="form-title">➕ Adicionar Funcionário</h3>
         <input type="hidden" id="edit-id">
-        <div class="form-group"><label>👤 Nome Completo</label><input type="text" id="f-nome" required></div>
+        <div class="form-group"><label>👤 Nome Completo</label><input type="text" id="f-nome"></div>
         <div class="flex-row">
             <div class="form-group"><label>🆔 Matrícula</label><input type="text" id="f-matr"></div>
             <div class="form-group"><label>🌞 Turno</label>
@@ -195,8 +179,8 @@
                 </select>
             </div>
         </div>
-        <div class="form-group"><label>📍 Posto</label><input type="text" id="f-posto" list="dl-postos" required></div>
-        <div class="form-group"><label>📊 Início da Escala</label><input type="date" id="f-inicio" required></div>
+        <div class="form-group"><label>📍 Posto</label><input type="text" id="f-posto" list="dl-postos"></div>
+        <div class="form-group"><label>📊 Início da Escala</label><input type="date" id="f-inicio"></div>
         <div class="form-group"><label>📋 Status</label>
             <select id="f-status">
                 <option value="Ativo">Ativo</option>
@@ -211,56 +195,46 @@
         </div>
     </div>
 
-    <div class="panel"><h3>👥 Funcionários Cadastrados (<span id="count-funcs">0</span>)</h3><div id="lista-cadastrados"></div></div>
+    <div class="panel">
+        <h3>👥 Funcionários Cadastrados (<span id="count-funcs">0</span>)</h3>
+        <input type="text" id="search-func" placeholder="🔍 Pesquisar por nome, posto ou matrícula..." oninput="filtrarFuncionarios()" style="margin-bottom: 15px;">
+        <div id="lista-cadastrados"></div>
+    </div>
     
     <div class="panel">
         <h3>🏪 Gestão de Postos</h3>
         <div class="flex-row">
-            <input type="text" id="novo-posto-input" placeholder="Nome do novo posto..." style="flex: 1;">
+            <input type="text" id="novo-posto-input" placeholder="Novo posto...">
             <button onclick="addPosto()" class="btn btn-success" style="width: 60px;">+</button>
         </div>
-        <div id="lista-gestao-postos" style="margin-top: 15px; max-height: 280px; overflow-y: auto;"></div>
+        <div id="lista-gestao-postos" style="margin-top: 15px; max-height: 200px; overflow-y: auto;"></div>
     </div>
 </div>
 
 <datalist id="dl-postos"></datalist>
 
 <div class="bottom-nav">
-    <button class="nav-item active" id="tab1" onclick="tab('postos')">
-        <div class="nav-icon">📋</div>Postos
-    </button>
-    <button class="nav-item" id="tab2" onclick="tab('add')">
-        <div class="nav-icon">➕</div>Add
-    </button>
+    <button class="nav-item active" id="tab1" onclick="tab('postos')"><div class="nav-icon">📋</div>Postos</button>
+    <button class="nav-item" id="tab2" onclick="tab('add')"><div class="nav-icon">➕</div>Add</button>
 </div>
 
 <script>
     // ==================== DADOS ====================
-    const postosPadrao = [
-        "10º TABELIONATO", "COLÉGIO DOM FELICIANO", "COLÉGIO STELLA MARIS",
-        "ESCOLA MUNICIPAL", "FORUM CENTRAL", "HOSPITAL REGIONAL", "PREFEITURA",
-        "SECRETARIA DE EDUCAÇÃO", "TERMINAL RODOVIÁRIO", "UNIVERSIDADE FEDERAL"
-        // Adicione mais postos aqui se precisar
-    ];
-
+    const postosPadrao = ["10º TABELIONATO", "COLÉGIO DOM FELICIANO", "COLÉGIO STELLA MARIS"];
     let db_funcs = JSON.parse(localStorage.getItem('fg_funcs')) || [];
     let db_postos = JSON.parse(localStorage.getItem('fg_postos')) || postosPadrao;
     let dataRef = new Date();
     dataRef.setHours(0,0,0,0);
     let statusCache = JSON.parse(localStorage.getItem('fg_status_cache') || '{}');
 
-    // ==================== FUNÇÕES PRINCIPAIS ====================
+    // ==================== INICIALIZAÇÃO ====================
     function initApp() {
-        if (db_funcs.length === 0) {
-            alert('👋 Bem-vindo ao FortGuard!\n\nCadastre seus primeiros funcionários na aba "Add".');
-        }
         tab('postos');
     }
 
     function tab(v) {
         document.getElementById('view-postos').classList.toggle('hidden', v !== 'postos');
         document.getElementById('view-add').classList.toggle('hidden', v !== 'add');
-
         document.getElementById('tab1').classList.toggle('active', v === 'postos');
         document.getElementById('tab2').classList.toggle('active', v === 'add');
 
@@ -268,14 +242,14 @@
         if (v === 'add') { renderCadastrados(); renderPostos(); }
     }
 
+    // ==================== LÓGICA DE ESCALA ====================
     function estaDeServico(f, dataAlvo) {
         if (!f.inicio) return false;
         const inicio = new Date(f.inicio + "T00:00:00");
         const alvo = new Date(dataAlvo);
         alvo.setHours(0,0,0,0);
         if (alvo < inicio) return false;
-
-        const diffDays = Math.floor((alvo - inicio) / (86400000));
+        const diffDays = Math.floor((alvo - inicio) / 86400000);
 
         switch(f.escala) {
             case "12x36": return diffDays % 2 === 0;
@@ -289,129 +263,41 @@
         }
     }
 
-    function saveStatus(nome, posto, cargo, status) {
-        const key = `${dataRef.toDateString()}_${nome}_${posto}`;
-        statusCache[key] = status;
-        localStorage.setItem('fg_status_cache', JSON.stringify(statusCache));
+    // ==================== PESQUISA E FILTRO (CORRIGIDO) ====================
+    function filtrarFuncionarios() {
+        const termo = document.getElementById('search-func').value.toLowerCase().trim();
+        const filtrados = db_funcs.filter(f => 
+            f.nome.toLowerCase().includes(termo) || 
+            f.posto.toLowerCase().includes(termo) || 
+            (f.matr && f.matr.toLowerCase().includes(termo))
+        );
+        renderCadastrados(filtrados);
     }
 
-    function loadStatus(nome, posto) {
-        const key = `${dataRef.toDateString()}_${nome}_${posto}`;
-        return statusCache[key] || '';
-    }
+    function renderCadastrados(listaFiltrada = null) {
+        const lista = document.getElementById('lista-cadastrados');
+        const dados = listaFiltrada !== null ? listaFiltrada : db_funcs;
 
-    function renderEscala() {
-        document.getElementById('label-data').innerHTML = dataRef.toLocaleDateString('pt-BR', { 
-            weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' 
-        }).replace(/\b\w/g, l => l.toUpperCase());
-
-        const funcsNoDia = db_funcs.filter(f => estaDeServico(f, dataRef));
-        
-        const sups = [], res = [], geral = [];
-
-        funcsNoDia.sort((a,b) => a.posto.localeCompare(b.posto)).forEach(f => {
-            const statusAtual = loadStatus(f.nome, f.posto);
-            const cardClass = statusAtual === 'Falta' ? 'card-func falta' : 
-                             statusAtual === 'Recolhido' ? 'card-func recolhido' : 'card-func';
-
-            const html = `
-            <div class="${cardClass}" data-nome="${f.nome}" data-posto="${f.posto}">
-                <div class="func-header">
-                    <div class="func-name">${f.nome}</div>
-                    <span class="badge">${f.turno}</span>
-                </div>
-                <div class="func-details">
-                    <span>${f.posto}</span>
-                    <span>${f.escala}</span>
-                    <span>${f.status}</span>
-                </div>
-                <select class="status-select obs-plantao" onchange="saveStatus('${f.nome}', '${f.posto}', '${f.cargo}', this.value)">
-                    <option value="">Status do plantão...</option>
-                    <option value="Falta" ${statusAtual === 'Falta' ? 'selected' : ''}>🚫 Falta</option>
-                    <option value="Recolhido" ${statusAtual === 'Recolhido' ? 'selected' : ''}>✅ Recolhido</option>
-                    <option value="Suspenso" ${statusAtual === 'Suspenso' ? 'selected' : ''}>⏸️ Suspenso</option>
-                    <option value="Atestado" ${statusAtual === 'Atestado' ? 'selected' : ''}>📄 Atestado</option>
-                    ${f.cargo === 'reserva' ? `<option value="Cobertura" ${statusAtual === 'Cobertura' ? 'selected' : ''}>🛡️ Cobertura</option>` : ''}
-                </select>
-            </div>`;
-
-            if (['fiscal','inspetor'].includes(f.cargo)) sups.push(html);
-            else if (f.cargo === 'reserva') res.push(html);
-            else geral.push(html);
-        });
-
-        document.getElementById('lista-sup').innerHTML = sups.length ? sups.join('') : '<div class="panel vazio"></div>';
-        document.getElementById('lista-res').innerHTML = res.length ? res.join('') : '<div class="panel vazio"></div>';
-        document.getElementById('lista-geral').innerHTML = geral.length ? geral.join('') : '<div class="panel vazio"></div>';
-
-        document.getElementById('total-sup').textContent = sups.length;
-        document.getElementById('total-res').textContent = res.length;
-        document.getElementById('total-geral').textContent = geral.length;
-    }
-
-    function renderPostos() {
-        const dl = document.getElementById('dl-postos');
-        const list = document.getElementById('lista-gestao-postos');
-        dl.innerHTML = ''; list.innerHTML = '';
-
-        db_postos.sort().forEach(p => {
-            dl.innerHTML += `<option value="${p}">`;
-            list.innerHTML += `
-            <div class="item-gestao">
-                <span>${p}</span>
-                <button onclick="delPosto('${p}')" style="color:var(--danger);background:none;border:none;font-size:18px;padding:4px 8px;cursor:pointer;" title="Excluir">✕</button>
-            </div>`;
-        });
-    }
-
-    function addPosto() {
-        const input = document.getElementById('novo-posto-input');
-        const p = input.value.trim().toUpperCase();
-        if (p && !db_postos.includes(p)) {
-            db_postos.push(p);
-            localStorage.setItem('fg_postos', JSON.stringify(db_postos));
-            renderPostos();
-            input.value = '';
-        } else if (p) alert('Posto já cadastrado!');
-    }
-
-    function delPosto(p) {
-        if (confirm(`Excluir o posto "${p}"?`)) {
-            db_postos = db_postos.filter(x => x !== p);
-            localStorage.setItem('fg_postos', JSON.stringify(db_postos));
-            renderPostos();
-        }
-    }
-
-    async function compartilharRelatorio() {
-        let texto = `*FORTGUARD - ESCALA ${dataRef.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long', year:'numeric'}).toUpperCase()}*\n\n`;
-
-        document.querySelectorAll('#view-postos .panel').forEach(panel => {
-            const titulo = panel.querySelector('h3').innerText;
-            const cards = panel.querySelectorAll('.card-func');
-            if (cards.length) {
-                texto += `*${titulo.toUpperCase()} (${cards.length})*\n`;
-                cards.forEach(c => {
-                    const obs = c.querySelector('.obs-plantao').value;
-                    texto += `• ${c.dataset.nome} (${c.dataset.posto})${obs ? ` → ${obs}` : ''}\n`;
-                });
-                texto += `\n`;
-            }
-        });
-
-        if (navigator.share) {
-            await navigator.share({ title: 'FortGuard Escala', text: texto });
+        if (dados.length === 0) {
+            lista.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Nenhum registro encontrado.</div>';
         } else {
-            await navigator.clipboard.writeText(texto);
-            alert('✅ Relatório copiado para a área de transferência!\nCole no WhatsApp ou Telegram.');
+            lista.innerHTML = dados.map(f => `
+                <div class="item-gestao">
+                    <div>
+                        <strong>${f.nome}</strong><br>
+                        <small style="color:var(--muted);">${f.posto} • ${f.cargo} • ${f.turno}</small>
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn-edit" onclick="editarFunc('${f.id}')">✏️</button>
+                        <button class="btn-edit" style="background:var(--danger)" onclick="excluirFunc('${f.id}')">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
         }
+        document.getElementById('count-funcs').textContent = dados.length;
     }
 
-    function mudarData(d) {
-        dataRef.setDate(dataRef.getDate() + d);
-        renderEscala();
-    }
-
+    // ==================== GESTÃO DE DADOS ====================
     function salvarFuncionario() {
         const f = {
             id: document.getElementById('edit-id').value || Date.now().toString(),
@@ -425,42 +311,20 @@
             status: document.getElementById('f-status').value
         };
 
-        if (!f.nome || !f.posto || !f.inicio) {
-            alert('❌ Preencha Nome, Posto e Início da Escala!');
-            return;
-        }
+        if (!f.nome || !f.posto || !f.inicio) return alert('Preencha os campos obrigatórios!');
 
         const idx = db_funcs.findIndex(x => x.id === f.id);
-        if (idx > -1) db_funcs[idx] = f;
-        else db_funcs.push(f);
+        if (idx > -1) db_funcs[idx] = f; else db_funcs.push(f);
 
         localStorage.setItem('fg_funcs', JSON.stringify(db_funcs));
         resetForm();
-        tab('postos');
-        alert('✅ Funcionário salvo com sucesso!');
-    }
-
-    function renderCadastrados() {
-        const lista = document.getElementById('lista-cadastrados');
-        lista.innerHTML = db_funcs.map(f => `
-            <div class="item-gestao">
-                <div>
-                    <strong>${f.nome}</strong><br>
-                    <small style="color:var(--muted);">${f.posto} • ${f.cargo} • ${f.turno}</small>
-                </div>
-                <div>
-                    <button class="btn-edit" onclick="editarFunc('${f.id}')" title="Editar">✏️</button>
-                    <button class="btn-edit" style="background:var(--danger)" onclick="excluirFunc('${f.id}')" title="Excluir">🗑️</button>
-                </div>
-            </div>
-        `).join('');
-        document.getElementById('count-funcs').textContent = db_funcs.length;
+        renderCadastrados();
+        alert('Salvo!');
     }
 
     function editarFunc(id) {
         const f = db_funcs.find(x => x.id === id);
-        if (!f) return alert('Funcionário não encontrado!');
-
+        if (!f) return;
         document.getElementById('edit-id').value = f.id;
         document.getElementById('f-nome').value = f.nome;
         document.getElementById('f-matr').value = f.matr || '';
@@ -470,12 +334,12 @@
         document.getElementById('f-cargo').value = f.cargo;
         document.getElementById('f-turno').value = f.turno;
         document.getElementById('f-status').value = f.status;
-        document.getElementById('form-title').innerText = `✏️ Editando: ${f.nome}`;
-        tab('add');
+        document.getElementById('form-title').innerText = '✏️ Editar';
+        window.scrollTo(0,0);
     }
 
     function excluirFunc(id) {
-        if (confirm('Excluir este funcionário permanentemente?')) {
+        if (confirm('Excluir?')) {
             db_funcs = db_funcs.filter(x => x.id !== id);
             localStorage.setItem('fg_funcs', JSON.stringify(db_funcs));
             renderCadastrados();
@@ -484,12 +348,70 @@
 
     function resetForm() {
         document.getElementById('edit-id').value = '';
-        document.getElementById('form-title').innerText = '➕ Adicionar Funcionário';
-        document.querySelectorAll('#view-add input, #view-add select').forEach(el => el.value = '');
+        document.getElementById('form-title').innerText = '➕ Adicionar';
+        document.querySelectorAll('#view-add input').forEach(i => i.value = '');
     }
 
-    // ==================== INICIALIZAÇÃO ====================
-    statusCache = JSON.parse(localStorage.getItem('fg_status_cache') || '{}');
+    // ==================== RENDERS EXTRAS ====================
+    function renderEscala() {
+        document.getElementById('label-data').innerHTML = dataRef.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+        const funcsNoDia = db_funcs.filter(f => estaDeServico(f, dataRef));
+        
+        const sups = [], res = [], geral = [];
+        funcsNoDia.forEach(f => {
+            const statusKey = `${dataRef.toDateString()}_${f.nome}_${f.posto}`;
+            const s = statusCache[statusKey] || '';
+            const html = `
+                <div class="card-func ${s.toLowerCase()}" onclick="alert('${f.nome}')">
+                    <div class="func-header"><div class="func-name">${f.nome}</div><span class="badge">${f.turno}</span></div>
+                    <div class="func-details"><span>${f.posto}</span><span>${f.escala}</span></div>
+                    <select class="status-select obs-plantao" onchange="statusCache['${statusKey}']=this.value; localStorage.setItem('fg_status_cache', JSON.stringify(statusCache)); renderEscala();">
+                        <option value="">Status...</option>
+                        <option value="Falta" ${s==='Falta'?'selected':''}>🚫 Falta</option>
+                        <option value="Recolhido" ${s==='Recolhido'?'selected':''}>✅ OK</option>
+                    </select>
+                </div>`;
+            if (['fiscal','inspetor'].includes(f.cargo)) sups.push(html);
+            else if (f.cargo === 'reserva') res.push(html);
+            else geral.push(html);
+        });
+
+        document.getElementById('lista-sup').innerHTML = sups.join('') || '<p>Vazio</p>';
+        document.getElementById('lista-res').innerHTML = res.join('') || '<p>Vazio</p>';
+        document.getElementById('lista-geral').innerHTML = geral.join('') || '<p>Vazio</p>';
+        document.getElementById('total-sup').innerText = sups.length;
+        document.getElementById('total-res').innerText = res.length;
+        document.getElementById('total-geral').innerText = geral.length;
+    }
+
+    function renderPostos() {
+        const dl = document.getElementById('dl-postos');
+        const list = document.getElementById('lista-gestao-postos');
+        dl.innerHTML = ''; list.innerHTML = '';
+        db_postos.sort().forEach(p => {
+            dl.innerHTML += `<option value="${p}">`;
+            list.innerHTML += `<div class="item-gestao"><span>${p}</span><button onclick="delPosto('${p}')" style="color:red; background:none; border:none; cursor:pointer;">✕</button></div>`;
+        });
+    }
+
+    function addPosto() {
+        const p = document.getElementById('novo-posto-input').value.trim().toUpperCase();
+        if (p && !db_postos.includes(p)) { db_postos.push(p); localStorage.setItem('fg_postos', JSON.stringify(db_postos)); renderPostos(); }
+    }
+
+    function delPosto(p) { if (confirm('Remover?')) { db_postos = db_postos.filter(x => x !== p); localStorage.setItem('fg_postos', JSON.stringify(db_postos)); renderPostos(); } }
+
+    function mudarData(d) { dataRef.setDate(dataRef.getDate() + d); renderEscala(); }
+
+    async function compartilharRelatorio() {
+        let txt = `*FORTGUARD - ${dataRef.toLocaleDateString()}*\n\n`;
+        db_funcs.filter(f => estaDeServico(f, dataRef)).forEach(f => {
+            txt += `• ${f.nome} (${f.posto})\n`;
+        });
+        navigator.clipboard.writeText(txt);
+        alert('Copiado!');
+    }
+
     initApp();
 </script>
 </body>
